@@ -1,0 +1,1 @@
+export { PointsAllocation } from './PointsAllocation';
