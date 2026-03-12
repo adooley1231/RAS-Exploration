@@ -1,11 +1,9 @@
-import { Coins } from 'lucide-react';
 import { getMemberPoints, getPointsAllocated, getPointsRemaining } from '../../utils/helpers';
 import type { User, VacationRequest } from '../../types';
 
 interface PointsBankProps {
   user: User;
   requests: VacationRequest[];
-  /** Compact inline style for header; default is prominent bar */
   variant?: 'default' | 'compact';
   className?: string;
 }
@@ -15,58 +13,127 @@ export function PointsBank({ user, requests, variant = 'default', className = ''
   const allocated = getPointsAllocated(requests);
   const remaining = getPointsRemaining(user, requests);
   const isOver = remaining < 0;
+  const usedPct = Math.min((allocated / total) * 100, 100);
 
   if (variant === 'compact') {
     return (
-      <div className={`flex items-center gap-2 text-sm ${className}`}>
-        <Coins className="w-4 h-4 text-gold" />
-        <span className="font-medium text-navy tabular-nums">{total}</span>
-        <span className="text-slate-400">available</span>
-        <span className="text-slate-300">|</span>
-        <span className="text-navy-light tabular-nums">{allocated}</span>
-        <span className="text-slate-400">allocated</span>
-        <span className="text-slate-300">|</span>
-        <span className={`tabular-nums ${isOver ? 'text-coral font-medium' : 'text-teal'}`}>
+      <div
+        className={`flex items-center gap-1.5 ${className}`}
+        style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.8125rem' }}
+      >
+        <span className="tabular-nums" style={{ fontWeight: 500, color: 'var(--er-slate-800)' }}>{total}</span>
+        <span style={{ color: 'var(--er-gray-400)' }}>available</span>
+        <span style={{ color: 'var(--er-gray-300)' }}>|</span>
+        <span className="tabular-nums" style={{ color: 'var(--er-gray-700)' }}>{allocated}</span>
+        <span style={{ color: 'var(--er-gray-400)' }}>allocated</span>
+        <span style={{ color: 'var(--er-gray-300)' }}>|</span>
+        <span
+          className="tabular-nums"
+          style={{ color: isOver ? 'var(--color-coral)' : 'var(--color-teal)', fontWeight: isOver ? 500 : 400 }}
+        >
           {remaining}
         </span>
-        <span className="text-slate-400">remaining</span>
+        <span style={{ color: 'var(--er-gray-400)' }}>remaining</span>
       </div>
     );
   }
 
   return (
     <div
-      className={`flex flex-wrap items-center gap-3 px-4 py-3 rounded-xl bg-white border border-slate-200 card-shadow ${className}`}
+      className={`flex flex-wrap items-center justify-between gap-4 px-5 py-3.5 ${className}`}
+      style={{
+        background: 'var(--er-white)',
+        border: '1px solid var(--er-gray-200)',
+        borderRadius: 'var(--er-radius-xl)',
+        boxShadow: 'var(--er-shadow-xs)',
+      }}
     >
-      <div className="flex items-center gap-2">
-        <div className="w-9 h-9 rounded-lg gold-gradient flex items-center justify-center">
-          <Coins className="w-5 h-5 text-white" />
-        </div>
-        <div>
-          <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">
-            Points budget
-          </p>
-          <p className="text-lg font-bold text-navy tabular-nums">
-            {total} available
-            {user.memberType === 'ultra' && (
-              <span className="ml-1.5 text-xs font-normal text-gold">(1.2× Ultra)</span>
-            )}
-          </p>
-        </div>
+      {/* Left: label + total */}
+      <div className="flex items-baseline gap-3">
+        <p className="label-caps" style={{ color: 'var(--er-gray-400)' }}>Points budget</p>
+        <p
+          className="tabular-nums"
+          style={{
+            fontFamily: 'var(--er-font-sans)',
+            fontSize: '1.25rem',
+            fontWeight: 500,
+            color: 'var(--er-slate-800)',
+            lineHeight: 1,
+          }}
+        >
+          {total}
+          {' '}
+          <span
+            style={{ fontSize: '0.8125rem', fontWeight: 400, color: 'var(--er-gray-400)' }}
+          >
+            available
+          </span>
+          {user.memberType === 'ultra' && (
+            <span
+              className="label-caps ml-2 px-1.5 py-0.5"
+              style={{
+                background: 'linear-gradient(135deg, var(--color-gold-dark), var(--color-gold))',
+                color: '#fff',
+                borderRadius: '2px',
+                fontSize: '0.55rem',
+              }}
+            >
+              1.2× Ultra
+            </span>
+          )}
+        </p>
       </div>
-      <div className="flex items-center gap-4 text-sm">
-        <span className="text-slate-500">
-          <strong className="text-navy tabular-nums">{allocated}</strong> allocated
+
+      {/* Right: allocated | remaining */}
+      <div
+        className="flex items-center gap-3"
+        style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.8125rem' }}
+      >
+        <span>
+          <strong className="tabular-nums" style={{ fontWeight: 500, color: 'var(--er-slate-800)' }}>
+            {allocated}
+          </strong>
+          <span style={{ color: 'var(--er-gray-400)', marginLeft: '4px' }}>allocated</span>
         </span>
-        <span className="text-slate-300">|</span>
-        <span className={isOver ? 'text-coral font-semibold' : 'text-teal font-semibold'}>
-          <span className="tabular-nums">{remaining}</span> remaining
+        <span style={{ color: 'var(--er-gray-200)' }}>|</span>
+        <span>
+          <strong
+            className="tabular-nums"
+            style={{ fontWeight: 500, color: isOver ? 'var(--color-coral)' : 'var(--color-teal)' }}
+          >
+            {remaining}
+          </strong>
+          <span style={{ color: 'var(--er-gray-400)', marginLeft: '4px' }}>remaining</span>
         </span>
+        {isOver && (
+          <span
+            className="label-caps px-2 py-1"
+            style={{
+              background: 'rgba(206,84,87,0.08)',
+              color: 'var(--color-coral)',
+              borderRadius: 'var(--er-radius-full)',
+            }}
+          >
+            Over-allocated
+          </span>
+        )}
       </div>
-      {isOver && (
-        <span className="text-xs font-medium text-coral bg-coral/10 px-2 py-1 rounded-full">
-          Over-allocated — reduce points on requests
-        </span>
+
+      {/* Progress track */}
+      {allocated > 0 && (
+        <div className="w-full" style={{ height: '2px', background: 'var(--er-gray-100)', borderRadius: '1px' }}>
+          <div
+            style={{
+              width: `${usedPct}%`,
+              height: '100%',
+              background: isOver
+                ? 'var(--color-coral)'
+                : `linear-gradient(to right, var(--color-gold-dark), var(--color-gold))`,
+              borderRadius: '1px',
+              transition: 'width 0.5s cubic-bezier(0.34, 1.2, 0.64, 1)',
+            }}
+          />
+        </div>
       )}
     </div>
   );

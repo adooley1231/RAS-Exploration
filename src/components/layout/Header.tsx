@@ -21,88 +21,143 @@ export function Header() {
   const memberPoints = getMemberPoints(user);
 
   return (
-    <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
-      <div className="max-w-6xl mx-auto px-4 py-4">
+    <header className="bg-white sticky top-0 z-50" style={{ borderBottom: '1px solid var(--er-gray-200)' }}>
+      <div className="max-w-6xl mx-auto px-6 py-3">
         <div className="flex items-center justify-between">
-          {/* Logo / Title */}
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg gold-gradient flex items-center justify-center">
-              <span className="text-white font-serif font-bold text-lg">R</span>
+
+          {/* Brand lockup */}
+          <div className="flex items-center gap-4">
+            {/* Typographic mark — thin serif R in a quiet square frame */}
+            <div
+              className="w-8 h-8 flex items-center justify-center flex-shrink-0"
+              style={{ border: '1px solid var(--er-gray-200)' }}
+            >
+              <span style={{
+                fontFamily: 'var(--er-font-serif)',
+                fontWeight: 300,
+                fontSize: '1.125rem',
+                color: 'var(--er-slate-700)',
+                letterSpacing: '0.02em',
+                lineHeight: 1,
+              }}>
+                R
+              </span>
             </div>
             <div>
-              <h1 className="font-serif text-xl font-semibold text-navy">RAS Lottery</h1>
-              <p className="text-xs text-slate-500">Q2 2025 Vacation Requests</p>
+              <h1 style={{
+                fontFamily: 'var(--er-font-serif)',
+                fontWeight: 300,
+                fontSize: '1.1875rem',
+                letterSpacing: '-0.01em',
+                color: 'var(--er-slate-800)',
+                margin: 0,
+                lineHeight: 1.2,
+              }}>
+                RAS Lottery
+              </h1>
+              <p className="label-caps mt-0.5" style={{ color: 'var(--er-gray-400)' }}>
+                Q2 2025 · Vacation Requests
+              </p>
             </div>
           </div>
 
-          {/* User info */}
-          <div className="flex items-center gap-6">
-            {/* Points preview on Add Requests: you have X points to distribute in next step */}
+          {/* Right side */}
+          <div className="flex items-center gap-1">
+
+            {/* Points preview — quiet status */}
             {showPointsPreview && (
-              <div className="hidden md:flex md:items-center md:gap-2 px-3 py-2 bg-gold/10 rounded-lg">
-                <Coins className="w-4 h-4 text-gold flex-shrink-0" />
-                <span className="text-sm text-navy">
-                  <strong className="tabular-nums">{memberPoints} points</strong>
-                  <span className="text-navy-light font-normal"> to distribute in next step</span>
+              <div
+                className="hidden md:flex items-center gap-2 px-4 py-1.5 mr-2"
+                style={{ borderRight: '1px solid var(--er-gray-200)' }}
+              >
+                <Coins className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--color-gold)' }} />
+                <span style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.8125rem', color: 'var(--er-base-foreground)' }}>
+                  <strong className="tabular-nums" style={{ fontWeight: 500 }}>{memberPoints}</strong>
+                  <span style={{ color: 'var(--er-gray-500)' }}> pts to allocate</span>
                 </span>
               </div>
             )}
-            {/* Points bank (when allocating or reviewing) */}
+
+            {/* Points bank (allocate / review) */}
             {showPointsBank && (
-              <div className="hidden md:block">
+              <div className="hidden md:block mr-2">
                 <PointsBank user={user} requests={requests} variant="compact" />
               </div>
             )}
 
-            {/* User badge */}
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 rounded-full">
-                {user.memberType === 'ultra' ? (
-                  <Crown className="w-4 h-4 text-gold" />
-                ) : (
-                  <User className="w-4 h-4 text-slate-500" />
-                )}
-                <span className="text-sm font-medium text-navy">{user.name}</span>
-                {user.memberType === 'ultra' && (
-                  <span className="px-1.5 py-0.5 text-xs font-semibold gold-gradient text-white rounded">
-                    ULTRA
-                  </span>
-                )}
-              </div>
+            {/* Member badge */}
+            <div className="flex items-center gap-2 px-3 py-1.5">
+              {user.memberType === 'ultra' ? (
+                <Crown className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--color-gold)' }} />
+              ) : (
+                <User className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--er-gray-400)' }} />
+              )}
+              <span className="label-caps" style={{ color: 'var(--er-slate-700)', letterSpacing: '0.08em' }}>
+                {user.name}
+              </span>
+              {user.memberType === 'ultra' && (
+                <span
+                  className="label-caps px-1.5 py-0.5"
+                  style={{
+                    background: 'linear-gradient(135deg, var(--color-gold-dark), var(--color-gold))',
+                    color: '#fff',
+                    letterSpacing: '0.1em',
+                    borderRadius: '2px',
+                    fontSize: '0.55rem',
+                  }}
+                >
+                  Ultra
+                </span>
+              )}
             </div>
 
-            {/* Demo scenario selector */}
+            {/* Settings */}
             <div className="relative group">
-              <button className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
-                <Settings className="w-5 h-5 text-slate-400" />
+              <button
+                className="p-2 rounded transition-colors hover:bg-gray-50"
+                style={{ color: 'var(--er-gray-400)' }}
+              >
+                <Settings className="w-4 h-4" />
               </button>
 
-              {/* Dropdown */}
-              <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-lg border border-slate-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                <div className="p-3 border-b border-slate-100">
-                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
-                    Demo Scenario
-                  </p>
+              <div
+                className="absolute right-0 top-full mt-2 w-52 bg-white border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50"
+                style={{
+                  borderColor: 'var(--er-gray-200)',
+                  boxShadow: 'var(--er-shadow-lg)',
+                  borderRadius: 'var(--er-radius-md)',
+                }}
+              >
+                <div className="px-4 py-3" style={{ borderBottom: '1px solid var(--er-gray-100)' }}>
+                  <p className="label-caps" style={{ color: 'var(--er-gray-400)' }}>Demo Scenario</p>
                 </div>
-                <div className="p-2">
+                <div className="p-1.5">
                   {(Object.keys(scenarioLabels) as DemoScenario[]).map((scenario) => (
                     <button
                       key={scenario}
                       onClick={() => setDemoScenario(scenario)}
-                      className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                        demoScenario === scenario
-                          ? 'bg-gold/10 text-gold-dark font-medium'
-                          : 'hover:bg-slate-50 text-slate-700'
-                      }`}
+                      className="w-full text-left px-3 py-2 transition-colors text-sm"
+                      style={{
+                        borderRadius: 'var(--er-radius-sm)',
+                        color: demoScenario === scenario ? 'var(--color-gold-dark)' : 'var(--er-gray-700)',
+                        background: demoScenario === scenario ? 'rgba(201,169,110,0.08)' : 'transparent',
+                        fontFamily: 'var(--er-font-sans)',
+                        fontWeight: demoScenario === scenario ? 500 : 400,
+                      }}
                     >
                       {scenarioLabels[scenario]}
                     </button>
                   ))}
                 </div>
-                <div className="p-2 border-t border-slate-100">
+                <div className="p-1.5" style={{ borderTop: '1px solid var(--er-gray-100)' }}>
                   <button
                     onClick={reset}
-                    className="w-full text-left px-3 py-2 rounded-lg text-sm text-coral hover:bg-coral/5 transition-colors"
+                    className="w-full text-left px-3 py-2 transition-colors text-sm"
+                    style={{
+                      borderRadius: 'var(--er-radius-sm)',
+                      color: 'var(--er-base-destructive)',
+                      fontFamily: 'var(--er-font-sans)',
+                    }}
                   >
                     Reset All
                   </button>
@@ -112,14 +167,17 @@ export function Header() {
           </div>
         </div>
 
-        {/* Points preview / bank + AR Tokens (mobile) */}
-        <div className="md:hidden mt-4 space-y-3">
+        {/* Mobile */}
+        <div className="md:hidden mt-3 space-y-2">
           {showPointsPreview && (
-            <div className="flex items-center gap-2 px-3 py-2 bg-gold/10 rounded-lg">
-              <Coins className="w-4 h-4 text-gold flex-shrink-0" />
-              <span className="text-sm text-navy">
-                <strong className="tabular-nums">{memberPoints} points</strong>
-                <span className="text-navy-light font-normal"> to distribute in next step</span>
+            <div
+              className="flex items-center gap-2 px-3 py-2"
+              style={{ background: 'rgba(201,169,110,0.07)', borderRadius: 'var(--er-radius-md)' }}
+            >
+              <Coins className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--color-gold)' }} />
+              <span style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.8125rem', color: 'var(--er-base-foreground)' }}>
+                <strong className="tabular-nums">{memberPoints}</strong>
+                <span style={{ color: 'var(--er-gray-500)' }}> points to allocate</span>
               </span>
             </div>
           )}
