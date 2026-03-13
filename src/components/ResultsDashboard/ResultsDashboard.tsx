@@ -114,9 +114,9 @@ export function ResultsDashboard() {
         >
           <div
             className="w-20 h-20 mx-auto mb-6 flex items-center justify-center"
-            style={{ background: 'var(--er-gray-50)', borderRadius: 'var(--er-radius-sm)', border: '1px solid var(--er-gray-100)' }}
+            style={{ background: 'rgba(201,169,110,0.08)', borderRadius: 'var(--er-radius-sm)', border: '1px solid rgba(201,169,110,0.2)' }}
           >
-            <Compass className="w-10 h-10" style={{ color: 'var(--er-gray-300)' }} />
+            <Compass className="w-10 h-10" style={{ color: 'var(--color-gold)' }} />
           </div>
           <h3 style={{
             fontFamily: 'var(--er-font-serif)',

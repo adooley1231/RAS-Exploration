@@ -109,7 +109,7 @@ export function BrowseOrSearch() {
               <div
                 className="px-5 py-4"
                 style={{
-                  background: 'var(--er-white)',
+                  background: 'var(--er-gray-50)',
                   border: '1px solid var(--er-gray-200)',
                   borderRadius: 'var(--er-radius-xl)',
                   boxShadow: 'var(--er-shadow-xs)',

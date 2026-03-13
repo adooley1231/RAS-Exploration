@@ -201,13 +201,13 @@ export function ReviewSubmit() {
               return (
                 <div key={req.id} className="flex items-center gap-3">
                   <div
-                    className="w-32 truncate"
+                    className="flex-1 min-w-0 truncate"
                     style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.8125rem', color: 'var(--er-gray-600)' }}
                   >
                     {req.destination.name}
                   </div>
                   <div
-                    className="flex-1 overflow-hidden"
+                    className="w-28 flex-shrink-0 overflow-hidden"
                     style={{ height: '4px', background: 'var(--er-gray-100)', borderRadius: '2px' }}
                   >
                     <div
@@ -221,8 +221,8 @@ export function ReviewSubmit() {
                     />
                   </div>
                   <span
-                    className="w-16 text-right tabular-nums"
-                    style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.8125rem', fontWeight: 500, color: 'var(--color-gold-dark)' }}
+                    className="flex-shrink-0 w-14 text-right tabular-nums"
+                    style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.8125rem', fontWeight: 500, color: req.pointsAllocated === 0 ? 'var(--er-gray-400)' : 'var(--color-gold-dark)' }}
                   >
                     {req.pointsAllocated} pts
                   </span>
