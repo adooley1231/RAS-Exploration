@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MapPin, ArrowRight, ChevronUp, ChevronDown, AlertTriangle, Crown, X, Pencil, Trash2, Compass } from 'lucide-react';
+import { MapPin, ArrowRight, ChevronUp, ChevronDown, AlertTriangle, Crown, X, Pencil, Trash2, Compass, LayoutGrid, List, Home } from 'lucide-react';
 import { useRAS } from '../../context/RASContext';
 import { DateRangePicker } from '../RequestBuilder/DateRangePicker';
 import { EditRequestModal } from './EditRequestModal';
@@ -21,6 +21,7 @@ export function BrowseOrSearch() {
   const [editingRequest, setEditingRequest] = useState<VacationRequest | null>(null);
   const [panelCollapsed, setPanelCollapsed] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
+  const [destViewMode, setDestViewMode] = useState<'grid' | 'list'>('grid');
 
   const featuredDestinations = destinations.filter((d) => d.featured || d.available);
   const otherDestinations = destinations.filter((d) => !d.featured && !d.available);
@@ -194,18 +195,36 @@ export function BrowseOrSearch() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-10">
           <div className="flex flex-col lg:flex-row gap-10">
             <div className="flex-1 min-w-0">
-              <SectionHeadingDark label="All destinations" />
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {(otherDestinations.length > 0 ? otherDestinations : destinations).map((dest) => (
-                  <DestinationCard
-                    key={dest.id}
-                    destination={dest}
-                    isSelected={selectedDestination?.id === dest.id}
-                    onClick={() => handleCardClick(dest)}
-                    disabled={!canAddMore}
-                  />
-                ))}
-              </div>
+              <SectionHeadingDark
+                label="All destinations"
+                viewMode={destViewMode}
+                onToggleView={setDestViewMode}
+              />
+              {destViewMode === 'grid' ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {(otherDestinations.length > 0 ? otherDestinations : destinations).map((dest) => (
+                    <DestinationCard
+                      key={dest.id}
+                      destination={dest}
+                      isSelected={selectedDestination?.id === dest.id}
+                      onClick={() => handleCardClick(dest)}
+                      disabled={!canAddMore}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {(otherDestinations.length > 0 ? otherDestinations : destinations).map((dest) => (
+                    <DestinationListRow
+                      key={dest.id}
+                      destination={dest}
+                      isSelected={selectedDestination?.id === dest.id}
+                      onClick={() => handleCardClick(dest)}
+                      disabled={!canAddMore}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Sidebar placeholder on dark section for layout alignment */}
@@ -448,7 +467,15 @@ function SectionHeading({ label }: { label: string }) {
 }
 
 /* ── Section heading (dark) ───────────────────────────────────────── */
-function SectionHeadingDark({ label }: { label: string }) {
+function SectionHeadingDark({
+  label,
+  viewMode,
+  onToggleView,
+}: {
+  label: string;
+  viewMode?: 'grid' | 'list';
+  onToggleView?: (mode: 'grid' | 'list') => void;
+}) {
   return (
     <div className="flex items-center gap-4 mb-6">
       <p className="label-caps whitespace-nowrap" style={{ color: 'rgba(255,255,255,0.35)' }}>{label}</p>
@@ -456,6 +483,39 @@ function SectionHeadingDark({ label }: { label: string }) {
         className="flex-1 h-px"
         style={{ background: 'linear-gradient(to right, rgba(255,255,255,0.1), transparent)' }}
       />
+      {viewMode && onToggleView && (
+        <div
+          className="flex items-center gap-0.5 flex-shrink-0"
+          style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 'var(--er-radius-sm)', padding: '3px' }}
+        >
+          <button
+            type="button"
+            onClick={() => onToggleView('grid')}
+            className="flex items-center justify-center w-7 h-7 transition-colors"
+            style={{
+              borderRadius: '3px',
+              background: viewMode === 'grid' ? 'rgba(255,255,255,0.12)' : 'transparent',
+              color: viewMode === 'grid' ? '#fff' : 'rgba(255,255,255,0.35)',
+            }}
+            title="Grid view"
+          >
+            <LayoutGrid className="w-3.5 h-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => onToggleView('list')}
+            className="flex items-center justify-center w-7 h-7 transition-colors"
+            style={{
+              borderRadius: '3px',
+              background: viewMode === 'list' ? 'rgba(255,255,255,0.12)' : 'transparent',
+              color: viewMode === 'list' ? '#fff' : 'rgba(255,255,255,0.35)',
+            }}
+            title="List view"
+          >
+            <List className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -549,6 +609,15 @@ function RequestListItem({
   );
 }
 
+/* ── Helpers ──────────────────────────────────────────────────────── */
+function bedroomRange(units: { bedrooms: number }[]): string | null {
+  if (!units.length) return null;
+  const beds = units.map((u) => u.bedrooms);
+  const min = Math.min(...beds);
+  const max = Math.max(...beds);
+  return min === max ? `${min} bed${min !== 1 ? 's' : ''}` : `${min}–${max} beds`;
+}
+
 /* ── Hero card (featured) ─────────────────────────────────────────── */
 function HeroCard({
   destination,
@@ -608,6 +677,25 @@ function HeroCard({
           />
         )}
 
+        {/* Residence count badge */}
+        {destination.units.length > 0 && (
+          <div
+            className="absolute top-3.5 right-3.5 flex items-center gap-1 px-2 py-1"
+            style={{
+              background: 'rgba(0,0,0,0.45)',
+              backdropFilter: 'blur(6px)',
+              borderRadius: 'var(--er-radius-full)',
+              fontFamily: 'var(--er-font-sans)',
+              fontSize: '0.6875rem',
+              color: 'rgba(255,255,255,0.85)',
+              letterSpacing: '0.03em',
+            }}
+          >
+            <Home className="w-2.5 h-2.5" style={{ opacity: 0.7 }} />
+            {destination.units.length} {destination.units.length === 1 ? 'residence' : 'residences'}
+          </div>
+        )}
+
         {/* Bottom text */}
         <div className="absolute bottom-0 left-0 right-0 px-5 pb-5">
           <p
@@ -644,6 +732,106 @@ function HeroCard({
               {isSelected ? '— close' : 'Request stay →'}
             </span>
           </div>
+        </div>
+      </div>
+    </button>
+  );
+}
+
+/* ── Destination list row (list view) ────────────────────────────── */
+function DestinationListRow({
+  destination,
+  isSelected,
+  onClick,
+  disabled,
+}: {
+  destination: Destination;
+  isSelected?: boolean;
+  onClick: () => void;
+  disabled?: boolean;
+}) {
+  const beds = bedroomRange(destination.units);
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className="destination-card group text-left w-full overflow-hidden transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-stretch"
+      style={{
+        borderRadius: 'var(--er-radius-sm)',
+        border: isSelected ? '1px solid var(--color-gold)' : '1px solid rgba(255,255,255,0.08)',
+        boxShadow: isSelected ? '0 0 0 3px rgba(201,169,110,0.2)' : 'none',
+        background: isSelected ? 'rgba(201,169,110,0.06)' : 'rgba(255,255,255,0.03)',
+      }}
+    >
+      {/* Thumbnail */}
+      <div className="relative flex-shrink-0 w-28 sm:w-36 overflow-hidden" style={{ minHeight: '80px' }}>
+        <img
+          src={destination.imageUrl}
+          alt={destination.name}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+        />
+        {isSelected && (
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{ boxShadow: 'inset 0 0 0 2px rgba(201,169,110,0.7)' }}
+          />
+        )}
+      </div>
+
+      {/* Info */}
+      <div className="flex-1 flex items-center px-4 py-3 min-w-0 gap-4">
+        <div className="flex-1 min-w-0">
+          <p
+            style={{
+              fontFamily: 'var(--er-font-serif)',
+              fontWeight: 300,
+              fontSize: '1.0625rem',
+              color: '#fff',
+              letterSpacing: '-0.01em',
+              lineHeight: 1.2,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
+            {destination.name}
+          </p>
+          <div className="flex items-center gap-3 mt-1.5 flex-wrap">
+            <div className="flex items-center gap-1">
+              <MapPin className="w-2.5 h-2.5 flex-shrink-0" style={{ color: 'rgba(255,255,255,0.4)' }} />
+              <span className="label-caps" style={{ color: 'rgba(255,255,255,0.4)', letterSpacing: '0.09em' }}>
+                {destination.region}
+              </span>
+            </div>
+            {destination.units.length > 0 && (
+              <div className="flex items-center gap-1">
+                <Home className="w-2.5 h-2.5 flex-shrink-0" style={{ color: 'rgba(255,255,255,0.35)' }} />
+                <span style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.6875rem', color: 'rgba(255,255,255,0.4)' }}>
+                  {destination.units.length} {destination.units.length === 1 ? 'residence' : 'residences'}
+                  {beds ? ` · ${beds}` : ''}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* CTA */}
+        <div
+          className="flex-shrink-0 transition-all duration-200"
+          style={{
+            fontFamily: 'var(--er-font-sans)',
+            fontSize: '0.75rem',
+            color: isSelected ? 'var(--color-gold-light)' : 'rgba(255,255,255,0)',
+          }}
+        >
+          <span
+            className="group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap"
+            style={{ opacity: isSelected ? 1 : 0, color: 'var(--color-gold-light)' }}
+          >
+            {isSelected ? '— close' : 'Request stay →'}
+          </span>
         </div>
       </div>
     </button>
@@ -691,6 +879,25 @@ function DestinationCard({
             className="absolute inset-0 pointer-events-none"
             style={{ boxShadow: 'inset 0 0 0 2px rgba(201,169,110,0.7)', borderRadius: 'var(--er-radius-sm)' }}
           />
+        )}
+
+        {/* Residence count badge */}
+        {destination.units.length > 0 && (
+          <div
+            className="absolute top-2.5 right-2.5 flex items-center gap-1 px-1.5 py-0.5"
+            style={{
+              background: 'rgba(0,0,0,0.45)',
+              backdropFilter: 'blur(6px)',
+              borderRadius: 'var(--er-radius-full)',
+              fontFamily: 'var(--er-font-sans)',
+              fontSize: '0.625rem',
+              color: 'rgba(255,255,255,0.8)',
+              letterSpacing: '0.03em',
+            }}
+          >
+            <Home className="w-2 h-2" style={{ opacity: 0.7 }} />
+            {destination.units.length} {destination.units.length === 1 ? 'residence' : 'residences'}
+          </div>
         )}
 
         <div className="absolute bottom-0 left-0 right-0 px-4 pb-4">

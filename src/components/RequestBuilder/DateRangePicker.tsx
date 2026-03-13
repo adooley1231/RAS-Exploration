@@ -23,6 +23,8 @@ interface DateRangePickerProps {
   suggestedStartDay?: number;
   /** Destination name for hint text. */
   destinationName?: string;
+  /** Override the default "Stays must be N-N nights" hint. Pass null to hide it. */
+  hintText?: string | null;
 }
 
 export function DateRangePicker({
@@ -35,6 +37,7 @@ export function DateRangePicker({
   maxNights = 14,
   suggestedStartDay,
   destinationName,
+  hintText,
 }: DateRangePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [range, setRange] = useState<DateRange>({
@@ -161,9 +164,11 @@ export function DateRangePicker({
 
       {/* Stay length hint */}
       <div className="mt-1.5 space-y-1">
-        <p className="text-xs text-slate-500">
-          Stays must be {minNights}-{maxNights} nights
-        </p>
+        {hintText !== null && (
+          <p className="text-xs text-slate-500">
+            {hintText ?? `Stays must be ${minNights}–${maxNights} nights`}
+          </p>
+        )}
         {suggestedDayName && (
           <p className="text-xs text-gold flex items-center gap-1">
             <Sparkles className="w-3 h-3" />

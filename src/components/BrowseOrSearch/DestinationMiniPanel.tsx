@@ -156,6 +156,9 @@ export function DestinationMiniPanel({
                 setCheckIn(from);
                 setCheckOut(to);
               }}
+              minNights={dateMode === 'flexible' ? 1 : 2}
+              maxNights={dateMode === 'flexible' ? 365 : 14}
+              hintText={dateMode === 'flexible' ? 'Select your earliest check-in and latest check-out — up to ~1 month' : undefined}
               suggestedStartDay={dateMode === 'exact' ? destination.suggestedStartDay : undefined}
               destinationName={destination.name}
             />
