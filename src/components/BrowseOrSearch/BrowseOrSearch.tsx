@@ -55,9 +55,6 @@ export function BrowseOrSearch() {
 
   const slotPct = Math.min((requests.length / MAX_REQUESTS) * 100, 100);
 
-  // For the asymmetric featured layout: first is the hero, rest are secondary
-  const [featuredHero, ...featuredSecondary] = featuredDestinations;
-
   return (
     <div className="relative">
 
@@ -553,17 +550,6 @@ function FeaturedStripCard({
   );
 }
 
-function SectionHeading({ label }: { label: string }) {
-  return (
-    <div className="flex items-center gap-4 mb-6">
-      <p className="label-caps whitespace-nowrap" style={{ color: 'var(--er-gray-500)' }}>{label}</p>
-      <div
-        className="flex-1 h-px"
-        style={{ background: 'linear-gradient(to right, rgba(201,169,110,0.3), transparent)' }}
-      />
-    </div>
-  );
-}
 
 /* ── Section heading (dark) ───────────────────────────────────────── */
 function SectionHeadingDark({
@@ -715,146 +701,6 @@ function bedroomRange(units: { bedrooms: number }[]): string | null {
   const min = Math.min(...beds);
   const max = Math.max(...beds);
   return min === max ? `${min} bed${min !== 1 ? 's' : ''}` : `${min}–${max} beds`;
-}
-
-/* ── Hero card (featured) ─────────────────────────────────────────── */
-function HeroCard({
-  destination,
-  isSelected,
-  onClick,
-  disabled,
-  variant = 'primary',
-  fillHeight = false,
-}: {
-  destination: Destination;
-  isSelected?: boolean;
-  onClick: () => void;
-  disabled?: boolean;
-  variant?: 'primary' | 'secondary';
-  fillHeight?: boolean;
-}) {
-  const isPrimary = variant === 'primary';
-
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      className="destination-card group text-left w-full overflow-hidden transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-      style={{
-        borderRadius: 'var(--er-radius-sm)',
-        border: isSelected ? '1px solid var(--color-gold)' : '1px solid var(--er-gray-200)',
-        boxShadow: isSelected ? '0 0 0 3px rgba(201,169,110,0.2)' : 'none',
-        display: 'block',
-        height: fillHeight ? '100%' : 'auto',
-      }}
-    >
-      <div
-        className="overflow-hidden relative"
-        style={{
-          aspectRatio: fillHeight ? undefined : isPrimary ? '16/10' : '16/9',
-          height: fillHeight ? '100%' : undefined,
-          minHeight: fillHeight ? '220px' : undefined,
-        }}
-      >
-        <img
-          src={destination.imageUrl}
-          alt={destination.name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-        />
-        {/* Cinematic gradient — deeper bottom weight */}
-        <div
-          className="absolute inset-0"
-          style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.18) 45%, rgba(0,0,0,0) 100%)' }}
-        />
-
-        {/* Inset ring on select */}
-        {isSelected && (
-          <div
-            className="absolute inset-0 pointer-events-none"
-            style={{ boxShadow: 'inset 0 0 0 2px rgba(201,169,110,0.7)', borderRadius: 'var(--er-radius-sm)' }}
-          />
-        )}
-
-        {/* Demand badge — super-peak only */}
-        {destination.demandTier === 'super-peak' && (
-          <div
-            className="absolute top-3.5 left-3.5 px-2.5 py-1"
-            style={{
-              background: 'rgba(194,65,12,0.82)',
-              backdropFilter: 'blur(6px)',
-              borderRadius: 'var(--er-radius-full)',
-              fontFamily: 'var(--er-font-sans)',
-              fontSize: '0.6875rem',
-              fontWeight: 500,
-              color: '#fff',
-              letterSpacing: '0.06em',
-              textTransform: 'uppercase',
-            }}
-          >
-            High Demand
-          </div>
-        )}
-
-        {/* Residence count badge */}
-        {destination.units.length > 0 && (
-          <div
-            className="absolute top-3.5 right-3.5 flex items-center gap-1 px-2 py-1"
-            style={{
-              background: 'rgba(0,0,0,0.45)',
-              backdropFilter: 'blur(6px)',
-              borderRadius: 'var(--er-radius-full)',
-              fontFamily: 'var(--er-font-sans)',
-              fontSize: '0.6875rem',
-              color: 'rgba(255,255,255,0.85)',
-              letterSpacing: '0.03em',
-            }}
-          >
-            <Home className="w-2.5 h-2.5" style={{ opacity: 0.7 }} />
-            {destination.units.length} {destination.units.length === 1 ? 'residence' : 'residences'}
-          </div>
-        )}
-
-        {/* Bottom text */}
-        <div className="absolute bottom-0 left-0 right-0 px-5 pb-5">
-          <p
-            style={{
-              fontFamily: 'var(--er-font-serif)',
-              fontWeight: 300,
-              fontSize: isPrimary ? '1.875rem' : '1.375rem',
-              color: '#fff',
-              lineHeight: 1.1,
-              letterSpacing: '-0.02em',
-            }}
-          >
-            {destination.name}
-          </p>
-          <div className="flex items-center gap-1.5 mt-1.5">
-            <MapPin className="w-3 h-3" style={{ color: 'rgba(255,255,255,0.55)' }} />
-            <span
-              className="label-caps"
-              style={{ color: 'rgba(255,255,255,0.55)', letterSpacing: '0.1em' }}
-            >
-              {destination.region}
-            </span>
-          </div>
-          <div
-            className="mt-3 inline-flex items-center gap-1.5 transition-all duration-200"
-            style={{
-              fontFamily: 'var(--er-font-sans)',
-              fontSize: '0.75rem',
-              fontWeight: 400,
-              color: isSelected ? 'var(--color-gold-light)' : 'rgba(255,255,255,0)',
-            }}
-          >
-            <span className="group-hover:text-gold-light transition-all duration-200" style={{ color: isSelected ? 'var(--color-gold-light)' : 'rgba(255,255,255,0.5)' }}>
-              {isSelected ? '— close' : 'Request stay →'}
-            </span>
-          </div>
-        </div>
-      </div>
-    </button>
-  );
 }
 
 /* ── Destination list row (list view) ────────────────────────────── */
