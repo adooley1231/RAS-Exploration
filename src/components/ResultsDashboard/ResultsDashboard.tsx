@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Trophy, Compass, RefreshCw, Gift, Clock, Bell, Check, AlertCircle } from 'lucide-react';
-import { format, differenceInSeconds } from 'date-fns';
+import { format, differenceInSeconds, addDays } from 'date-fns';
 import { useRAS } from '../../context/RASContext';
 import { ResultCard } from './ResultCard';
 import { destinations } from '../../data/mockData';
@@ -37,20 +37,17 @@ export function ResultsDashboard() {
     return () => clearTimeout(t);
   }, [showToast]);
 
-  // Shared deadline — use the first result's declineDeadline
-  const sharedDeadline = results.find((r) => r.declineDeadline)?.declineDeadline ?? null;
-  const [secondsLeft, setSecondsLeft] = useState<number>(
-    sharedDeadline ? differenceInSeconds(sharedDeadline, new Date()) : 0
-  );
+  // Deadline fixed at 14 days from first render
+  const deadline = useMemo(() => addDays(new Date(), 14), []);
+  const [secondsLeft, setSecondsLeft] = useState<number>(() => differenceInSeconds(deadline, new Date()));
   useEffect(() => {
-    if (!sharedDeadline) return;
     const t = setInterval(() => {
-      setSecondsLeft(differenceInSeconds(sharedDeadline, new Date()));
-    }, 60000); // update every minute — days+hours only
+      setSecondsLeft(differenceInSeconds(deadline, new Date()));
+    }, 1000);
     return () => clearInterval(t);
-  }, [sharedDeadline]);
-  const daysLeft = Math.floor(secondsLeft / 86400);
-  const hoursLeft = Math.floor((secondsLeft % 86400) / 3600);
+  }, [deadline]);
+  const daysLeft = Math.max(0, Math.floor(secondsLeft / 86400));
+  const hoursLeft = Math.max(0, Math.floor((secondsLeft % 86400) / 3600));
 
   const wins = results.filter((r) => r.status === 'won');
   const losses = results.filter((r) => r.status === 'lost');
@@ -120,18 +117,6 @@ export function ResultsDashboard() {
               </div>
             </div>
 
-            {pendingWins.length > 0 && (
-              <div className="pl-8" style={{ borderLeft: '1px solid var(--er-gray-200)' }}>
-                <p
-                  className="tabular-nums"
-                  style={{ fontFamily: 'var(--er-font-sans)', fontSize: '1.75rem', fontWeight: 300, color: 'var(--color-amber)', lineHeight: 1 }}
-                >
-                  {pendingWins.length}
-                </p>
-                <p style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.8125rem', color: 'var(--er-gray-500)' }}>Pending response</p>
-              </div>
-            )}
-
             {acceptedWins.length > 0 && (
               <div className="pl-8" style={{ borderLeft: '1px solid var(--er-gray-200)' }}>
                 <p
@@ -200,7 +185,7 @@ export function ResultsDashboard() {
       )}
 
       {/* Response deadline banner */}
-      {sharedDeadline && wins.some((r) => r.acceptStatus === 'pending') && (
+      {wins.some((r) => r.acceptStatus === 'pending') && (
         <div
           className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-5 py-4"
           style={{
@@ -219,7 +204,7 @@ export function ResultsDashboard() {
             </div>
             <div>
               <p style={{ fontFamily: 'var(--er-font-sans)', fontWeight: 500, fontSize: '0.875rem', color: 'var(--er-slate-800)' }}>
-                Respond by {format(sharedDeadline, 'EEEE, MMMM d')}
+                Respond by {format(deadline, 'EEEE, MMMM d')}
               </p>
               <p style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.8125rem', color: 'var(--er-gray-500)', marginTop: '1px' }}>
                 Unreplied wins are automatically released after the deadline
@@ -243,7 +228,7 @@ export function ResultsDashboard() {
       {/* Wins section */}
       {wins.length > 0 && (
         <div className="mb-8">
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-3 mb-4">
             <Trophy className="w-4 h-4 text-gold" />
             <h3 style={{
               fontFamily: 'var(--er-font-serif)',
@@ -255,6 +240,23 @@ export function ResultsDashboard() {
             }}>
               Your Wins ({wins.length})
             </h3>
+            {pendingWins.length > 0 && (
+              <span
+                className="px-2.5 py-0.5"
+                style={{
+                  fontFamily: 'var(--er-font-sans)',
+                  fontSize: '0.6875rem',
+                  fontWeight: 500,
+                  color: 'var(--color-amber)',
+                  background: 'rgba(217,119,6,0.08)',
+                  border: '1px solid rgba(217,119,6,0.18)',
+                  borderRadius: 'var(--er-radius-full)',
+                  letterSpacing: '0.02em',
+                }}
+              >
+                {pendingWins.length} awaiting response
+              </span>
+            )}
           </div>
           <div className="grid md:grid-cols-2 gap-6">
             {wins.map((result) => (
