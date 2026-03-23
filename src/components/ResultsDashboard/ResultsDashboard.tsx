@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Trophy, Compass, RefreshCw, Gift, Clock, Bell, Check } from 'lucide-react';
-import { format } from 'date-fns';
+import { Trophy, Compass, RefreshCw, Gift, Clock, Bell, Check, AlertCircle } from 'lucide-react';
+import { format, differenceInSeconds } from 'date-fns';
 import { useRAS } from '../../context/RASContext';
 import { ResultCard } from './ResultCard';
 import { destinations } from '../../data/mockData';
@@ -36,6 +36,21 @@ export function ResultsDashboard() {
     const t = setTimeout(() => setShowToast(false), 4000);
     return () => clearTimeout(t);
   }, [showToast]);
+
+  // Shared deadline — use the first result's declineDeadline
+  const sharedDeadline = results.find((r) => r.declineDeadline)?.declineDeadline ?? null;
+  const [secondsLeft, setSecondsLeft] = useState<number>(
+    sharedDeadline ? differenceInSeconds(sharedDeadline, new Date()) : 0
+  );
+  useEffect(() => {
+    if (!sharedDeadline) return;
+    const t = setInterval(() => {
+      setSecondsLeft(differenceInSeconds(sharedDeadline, new Date()));
+    }, 60000); // update every minute — days+hours only
+    return () => clearInterval(t);
+  }, [sharedDeadline]);
+  const daysLeft = Math.floor(secondsLeft / 86400);
+  const hoursLeft = Math.floor((secondsLeft % 86400) / 3600);
 
   const wins = results.filter((r) => r.status === 'won');
   const losses = results.filter((r) => r.status === 'lost');
@@ -180,6 +195,47 @@ export function ResultsDashboard() {
                 You'll be notified if you're selected in the secondary lottery.
               </p>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Response deadline banner */}
+      {sharedDeadline && wins.some((r) => r.acceptStatus === 'pending') && (
+        <div
+          className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-5 py-4"
+          style={{
+            background: 'var(--er-white)',
+            border: '1px solid rgba(201,169,110,0.3)',
+            borderRadius: 'var(--er-radius-xl)',
+            boxShadow: '0 2px 12px rgba(201,169,110,0.08)',
+          }}
+        >
+          <div className="flex items-center gap-3">
+            <div
+              className="w-9 h-9 flex items-center justify-center flex-shrink-0"
+              style={{ background: 'rgba(201,169,110,0.1)', borderRadius: 'var(--er-radius-md)' }}
+            >
+              <AlertCircle className="w-4 h-4" style={{ color: 'var(--color-gold-dark)' }} />
+            </div>
+            <div>
+              <p style={{ fontFamily: 'var(--er-font-sans)', fontWeight: 500, fontSize: '0.875rem', color: 'var(--er-slate-800)' }}>
+                Respond by {format(sharedDeadline, 'EEEE, MMMM d')}
+              </p>
+              <p style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.8125rem', color: 'var(--er-gray-500)', marginTop: '1px' }}>
+                Unreplied wins are automatically released after the deadline
+              </p>
+            </div>
+          </div>
+          <div
+            className="flex items-center gap-2 flex-shrink-0 px-4 py-2"
+            style={{ background: 'rgba(201,169,110,0.07)', borderRadius: 'var(--er-radius-lg)' }}
+          >
+            <Clock className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--color-gold-dark)' }} />
+            <span className="tabular-nums" style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.9375rem', fontWeight: 500, color: 'var(--er-slate-800)' }}>
+              {daysLeft > 0 && <><span>{daysLeft}</span><span style={{ fontWeight: 400, color: 'var(--er-gray-500)' }}>d </span></>}
+              <span>{hoursLeft}</span><span style={{ fontWeight: 400, color: 'var(--er-gray-500)' }}>h</span>
+            </span>
+            <span style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.75rem', color: 'var(--er-gray-400)' }}>remaining</span>
           </div>
         </div>
       )}
