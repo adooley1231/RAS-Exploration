@@ -66,11 +66,11 @@ export function DestinationMiniPanel({
         aria-hidden="true"
       />
 
-      {/* Panel */}
-      <div className="panel-enter fixed z-50 bottom-0 left-0 right-0 sm:bottom-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:max-w-[30rem] sm:w-full bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden">
+      {/* Panel — wider to accommodate 2-month calendar, no overflow-hidden so calendar popup isn't clipped */}
+      <div className="panel-enter fixed z-50 bottom-0 left-0 right-0 sm:bottom-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:max-w-[44rem] sm:w-full bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl">
 
-        {/* Cinematic image header */}
-        <div className="relative h-44 overflow-hidden">
+        {/* Cinematic image header — overflow-hidden scoped here only so calendar isn't clipped */}
+        <div className="relative h-40 overflow-hidden rounded-t-3xl sm:rounded-t-2xl">
           <img
             src={destination.imageUrl}
             alt={destination.name}
@@ -100,23 +100,22 @@ export function DestinationMiniPanel({
           </div>
         </div>
 
-        {/* Form body */}
-        <div className="p-5 space-y-5 max-h-[70vh] sm:max-h-[calc(100vh-13rem)] overflow-y-auto">
+        {/* Date picker — outside scroll container so calendar popup renders freely */}
+        <div className="px-5 pt-5">
+          <DateRangePicker
+            checkIn={checkIn}
+            checkOut={checkOut}
+            onChange={(from, to) => {
+              setCheckIn(from);
+              setCheckOut(to);
+            }}
+            suggestedStartDay={destination.suggestedStartDay}
+            destinationName={destination.name}
+          />
+        </div>
 
-          {/* Dates */}
-          <div>
-            <DateRangePicker
-              checkIn={checkIn}
-              checkOut={checkOut}
-              onChange={(from, to) => {
-                setCheckIn(from);
-                setCheckOut(to);
-              }}
-              suggestedStartDay={destination.suggestedStartDay}
-              destinationName={destination.name}
-            />
-          </div>
-
+        {/* Scrollable lower section — unit selector, options, CTAs */}
+        <div className="px-5 pb-5 pt-4 space-y-4 max-h-[40vh] overflow-y-auto">
 
           {/* Unit preference */}
           <div>
