@@ -279,7 +279,7 @@ export const sampleUsers: Record<string, User> = {
 // Generate mock results for different scenarios
 export const generateMockResults = (scenario: string): RASResult[] => {
   const baseDate = new Date();
-  const deadline = addDays(baseDate, 2); // 48-hour deadline
+  const deadline = addDays(baseDate, 14); // 14-day deadline
 
   switch (scenario) {
     case 'results-mix':

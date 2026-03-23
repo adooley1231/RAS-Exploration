@@ -11,7 +11,6 @@ import {
 } from 'lucide-react';
 import { format, isSameDay, differenceInDays } from 'date-fns';
 import type { RASResult } from '../../types';
-import { CountdownTimer } from '../shared/CountdownTimer';
 
 interface ResultCardProps {
   result: RASResult;
@@ -235,19 +234,6 @@ export function ResultCard({ result, onAccept, onDecline, waitlistOptIn = false,
             {/* Accept/Decline or status */}
             {isPending ? (
               <div className="space-y-3">
-                <div
-                  className="flex items-center justify-between p-3"
-                  style={{ background: 'var(--er-gray-50)', borderRadius: 'var(--er-radius-md)', border: '1px solid var(--er-gray-100)' }}
-                >
-                  <span style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.8125rem', color: 'var(--er-gray-500)' }}>
-                    Time to respond:
-                  </span>
-                  <CountdownTimer deadline={result.declineDeadline} size="md" />
-                </div>
-                <p style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.75rem', color: 'var(--er-gray-400)', textAlign: 'center' }}>
-                  If you take no action, this reservation will be automatically released when the timer expires.
-                </p>
-
                 <div className="flex gap-3">
                   <button
                     onClick={onDecline}
