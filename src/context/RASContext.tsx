@@ -1,9 +1,20 @@
 import React, { createContext, useContext, useReducer, type ReactNode } from 'react';
-import type { RASState, RASAction, DemoScenario, VacationRequest, Destination } from '../types';
+import type {
+  RASState,
+  RASAction,
+  DemoScenario,
+  VacationRequest,
+  Destination,
+  AppMode,
+  AnnotationCalloutId,
+} from '../types';
 import { sampleUsers, generateMockResults, getNextRASRunDate } from '../data/mockData';
 
 const initialState: RASState = {
   currentView: 'browse-or-search',
+  appMode: 'member',
+  activeMemberId: null,
+  annotationCalloutId: null,
   user: sampleUsers.regular,
   requests: [],
   results: [],
@@ -19,6 +30,23 @@ function rasReducer(state: RASState, action: RASAction): RASState {
   switch (action.type) {
     case 'SET_VIEW':
       return { ...state, currentView: action.payload };
+
+    case 'SET_APP_MODE':
+      return {
+        ...state,
+        appMode: action.payload,
+        currentView:
+          action.payload === 'ambassador'
+            ? 'ambassador-dashboard'
+            : 'browse-or-search',
+        activeMemberId: null,
+      };
+
+    case 'SET_ACTIVE_MEMBER':
+      return { ...state, activeMemberId: action.payload };
+
+    case 'SET_ANNOTATION_CALLOUT':
+      return { ...state, annotationCalloutId: action.payload };
 
     case 'SET_BROWSE_DESTINATION':
       return { ...state, browseSelectedDestination: action.payload };
@@ -141,6 +169,10 @@ interface RASContextType {
   dispatch: React.Dispatch<RASAction>;
   // Convenience actions
   setView: (view: RASState['currentView']) => void;
+  setAppMode: (mode: AppMode) => void;
+  setActiveMember: (id: string | null) => void;
+  openAnnotationCallout: (id: AnnotationCalloutId) => void;
+  closeAnnotationCallout: () => void;
   setBrowseDestination: (destination: Destination | null) => void;
   setBrowseDateRange: (range: { from: Date; to: Date } | null) => void;
   addRequest: (request: VacationRequest) => void;
@@ -164,6 +196,10 @@ export function RASProvider({ children }: { children: ReactNode }) {
     state,
     dispatch,
     setView: (view) => dispatch({ type: 'SET_VIEW', payload: view }),
+    setAppMode: (mode) => dispatch({ type: 'SET_APP_MODE', payload: mode }),
+    setActiveMember: (id) => dispatch({ type: 'SET_ACTIVE_MEMBER', payload: id }),
+    openAnnotationCallout: (id) => dispatch({ type: 'SET_ANNOTATION_CALLOUT', payload: id }),
+    closeAnnotationCallout: () => dispatch({ type: 'SET_ANNOTATION_CALLOUT', payload: null }),
     setBrowseDestination: (destination) =>
       dispatch({ type: 'SET_BROWSE_DESTINATION', payload: destination }),
     setBrowseDateRange: (range) =>

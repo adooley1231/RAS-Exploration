@@ -5,11 +5,16 @@ import { BrowseOrSearch } from './components/BrowseOrSearch';
 import { PointsAllocation } from './components/PointsAllocation';
 import { ReviewSubmit } from './components/ReviewSubmit';
 import { ResultsDashboard } from './components/ResultsDashboard';
+import { AmbassadorDashboard } from './components/AmbassadorDashboard/AmbassadorDashboard';
+import { LotteryLogicOverview } from './components/LotteryLogic';
+import { AnnotationCalloutModal } from './components/shared/AnnotationCalloutModal';
 import './index.css';
 
 function AppContent() {
   const { state, setView } = useRAS();
-  const { currentView, requests } = state;
+  const { currentView, requests, appMode } = state;
+
+  const hideMemberProgress = appMode === 'ambassador' || appMode === 'lottery-logic';
 
   const handleStepClick = (step: typeof currentView) => {
     if (step === 'browse-or-search') {
@@ -22,6 +27,12 @@ function AppContent() {
   };
 
   const renderView = () => {
+    if (appMode === 'ambassador') {
+      return <AmbassadorDashboard />;
+    }
+    if (appMode === 'lottery-logic') {
+      return <LotteryLogicOverview />;
+    }
     switch (currentView) {
       case 'browse-or-search':
         return <BrowseOrSearch />;
@@ -40,25 +51,35 @@ function AppContent() {
     <div className="min-h-screen bg-cream">
       <Header />
 
-      {/* Progress indicator */}
-      <div className="bg-white border-b border-slate-100 py-4">
-        <div className="max-w-6xl mx-auto px-4">
-          <ProgressIndicator
-            currentStep={currentView}
-            onStepClick={handleStepClick}
-            allowNavigation={currentView !== 'results'}
-          />
+      {/* Progress indicator — member flow only */}
+      {!hideMemberProgress && (
+        <div className="bg-white" style={{ borderBottom: '1px solid var(--er-gray-100)' }}>
+          <div className="max-w-6xl mx-auto px-6">
+            <ProgressIndicator
+              currentStep={currentView}
+              onStepClick={handleStepClick}
+              allowNavigation={currentView !== 'results'}
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Main content */}
       <main>{renderView()}</main>
 
+      {/* President/presentation annotations (non-destructive) */}
+      <AnnotationCalloutModal />
+
       {/* Footer */}
-      <footer className="mt-auto py-8 border-t border-slate-200 bg-white">
-        <div className="max-w-6xl mx-auto px-4 text-center text-sm text-slate-400">
-          <p>RAS Vacation Lottery Prototype — Q2 2025</p>
-          <p className="mt-1">
+      <footer
+        className="mt-auto py-8"
+        style={{ borderTop: '1px solid var(--er-gray-200)', background: 'var(--er-white)' }}
+      >
+        <div className="max-w-6xl mx-auto px-6 text-center">
+          <p className="label-caps" style={{ color: 'var(--er-gray-400)' }}>
+            RAS Vacation Lottery Prototype — Q2 2025
+          </p>
+          <p className="mt-1" style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.75rem', color: 'var(--er-gray-300)' }}>
             Use the settings icon (top right) to switch between demo scenarios.
           </p>
         </div>

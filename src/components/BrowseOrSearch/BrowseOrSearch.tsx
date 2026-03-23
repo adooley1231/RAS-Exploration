@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MapPin, Sparkles, ArrowRight, ChevronUp, ChevronDown, AlertTriangle, Crown, X, Pencil, Trash2 } from 'lucide-react';
+import { MapPin, ArrowRight, ChevronUp, ChevronDown, AlertTriangle, Crown, X, Pencil, Trash2, Compass, LayoutGrid, List, Home, Search } from 'lucide-react';
 import { useRAS } from '../../context/RASContext';
 import { DateRangePicker } from '../RequestBuilder/DateRangePicker';
 import { EditRequestModal } from './EditRequestModal';
@@ -7,10 +7,10 @@ import { DestinationMiniPanel } from './DestinationMiniPanel';
 import { PointsBank } from '../shared/PointsBank';
 import { destinations } from '../../data/mockData';
 import { formatDateRange, getNights } from '../../utils/helpers';
-import type { Destination, VacationRequest } from '../../types';
+import type { AppView, AnnotationCalloutId, Destination, VacationRequest } from '../../types';
 
 export function BrowseOrSearch() {
-  const { state, setView, addRequest, removeRequest } = useRAS();
+  const { state, setView, addRequest, removeRequest, openAnnotationCallout } = useRAS();
   const { user, requests } = state;
 
   const MAX_REQUESTS = user.memberType === 'ultra' ? 12 : 10;
@@ -21,9 +21,17 @@ export function BrowseOrSearch() {
   const [editingRequest, setEditingRequest] = useState<VacationRequest | null>(null);
   const [panelCollapsed, setPanelCollapsed] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
+  const [destViewMode, setDestViewMode] = useState<'grid' | 'list'>('grid');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const featuredDestinations = destinations.filter((d) => d.featured || d.available);
-  const otherDestinations = destinations.filter((d) => !d.featured && !d.available);
+  const allOtherDestinations = destinations.filter((d) => !d.featured && !d.available);
+  const otherDestinations = searchQuery.trim()
+    ? destinations.filter((d) =>
+        d.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        d.region.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : allOtherDestinations;
   const canAddMore = requests.length < MAX_REQUESTS;
   const requestsNeedingDates = requests.filter((r) => r.isPlaceholderDates);
 
@@ -35,6 +43,8 @@ export function BrowseOrSearch() {
   const handleMiniPanelAdd = (request: VacationRequest) => {
     addRequest(request);
     setSelectedDestination(null);
+    setCheckIn(null);
+    setCheckOut(null);
   };
 
   const handleMiniPanelAdvanced = (request: VacationRequest) => {
@@ -45,197 +55,274 @@ export function BrowseOrSearch() {
 
   const slotPct = Math.min((requests.length / MAX_REQUESTS) * 100, 100);
 
+  // For the asymmetric featured layout: first is the hero, rest are secondary
+  const [featuredHero, ...featuredSecondary] = featuredDestinations;
+
   return (
-    <div className="relative max-w-7xl mx-auto px-4 py-8">
-      <div className="flex flex-col lg:flex-row gap-10">
+    <div className="relative">
 
-        {/* ── Main browse content ─────────────────────────────────── */}
-        <div className="flex-1 min-w-0">
+      {/* ── Light section: Ultra ribbon + Points + Date + Featured ── */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-8">
+        <div className="flex flex-col lg:flex-row gap-10">
 
-          {/* Ultra ribbon */}
-          {user.memberType === 'ultra' && !bannerDismissed && (
-            <div className="mb-6 ultra-shimmer gold-gradient rounded-xl">
-              <div className="flex items-center gap-3 px-4 py-2.5">
-                <Crown className="w-4 h-4 text-white/90 flex-shrink-0" />
-                <p className="text-sm font-medium text-white flex-1">
-                  <span className="font-semibold">Ultra Member</span>
-                  {' '}— 12 request spots &amp; additional points to allocate
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setBannerDismissed(true)}
-                  className="text-white/60 hover:text-white transition-colors"
-                  aria-label="Dismiss"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-          )}
+          {/* Main content */}
+          <div className="flex-1 min-w-0">
 
-          {/* Points bank */}
-          <div className="mb-8">
-            <PointsBank user={user} requests={requests} />
-          </div>
-
-          {/* Date bar — minimal, integrated */}
-          <div className="mb-12">
-            <div className="flex items-center gap-4 mb-4">
-              <p className="label-caps text-slate-400 whitespace-nowrap">Travel window</p>
-              <div className="flex-1 h-px bg-slate-200" />
-              <p className="text-xs text-slate-400 whitespace-nowrap hidden sm:block">
-                Applies to new requests
-              </p>
-            </div>
-            <div className="bg-white rounded-2xl px-5 py-4 border border-slate-100 card-shadow">
-              <DateRangePicker
-                checkIn={checkIn}
-                checkOut={checkOut}
-                onChange={(from, to) => {
-                  setCheckIn(from);
-                  setCheckOut(to);
-                }}
-              />
-            </div>
-          </div>
-
-          {/* Featured section */}
-          {featuredDestinations.length > 0 && (
-            <section className="mb-14">
-              <SectionHeading icon={<Sparkles className="w-3.5 h-3.5" />} label="Featured" />
+            {/* Ultra ribbon */}
+            {user.memberType === 'ultra' && !bannerDismissed && (
               <div
-                className={`grid gap-5 ${
-                  featuredDestinations.length >= 3
-                    ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
-                    : featuredDestinations.length === 2
-                    ? 'grid-cols-1 md:grid-cols-2'
-                    : 'grid-cols-1'
-                }`}
+                className="mb-6 ultra-shimmer"
+                style={{
+                  background: 'linear-gradient(135deg, var(--er-slate-700) 0%, var(--er-slate-600) 100%)',
+                  borderRadius: 'var(--er-radius-lg)',
+                }}
               >
-                {featuredDestinations.map((dest) => (
-                  <HeroCard
-                    key={dest.id}
-                    destination={dest}
-                    isSelected={selectedDestination?.id === dest.id}
-                    onClick={() => handleCardClick(dest)}
-                    disabled={!canAddMore}
-                  />
-                ))}
+                <div className="flex items-center gap-3 px-4 py-2.5">
+                  <Crown className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--color-gold-light)' }} />
+                  <p className="flex-1" style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.8125rem', color: 'rgba(255,255,255,0.9)' }}>
+                    <span style={{ fontWeight: 500 }}>Ultra Member</span>
+                    {' '}— 12 request spots &amp; additional points to allocate
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setBannerDismissed(true)}
+                    className="transition-colors"
+                    style={{ color: 'rgba(255,255,255,0.4)' }}
+                    aria-label="Dismiss"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
-            </section>
-          )}
+            )}
 
-          {/* All destinations */}
-          <section>
-            <SectionHeading label="All destinations" />
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {(otherDestinations.length > 0 ? otherDestinations : destinations).map((dest) => (
-                <DestinationCard
-                  key={dest.id}
-                  destination={dest}
-                  isSelected={selectedDestination?.id === dest.id}
-                  onClick={() => handleCardClick(dest)}
-                  showAvailableBadge={!!(dest.featured || dest.available)}
-                  disabled={!canAddMore}
-                />
-              ))}
+            {/* Points bank */}
+            <div className="mb-8">
+              <PointsBank user={user} requests={requests} />
             </div>
-          </section>
-        </div>
 
-        {/* ── Wishlist sidebar ────────────────────────────────────── */}
-        <div className="lg:w-[22rem] flex-shrink-0">
-          <div className="lg:sticky lg:top-24">
-            <div className="rounded-2xl card-shadow border border-slate-200 overflow-hidden">
-
-              {/* Dark header */}
-              <button
-                type="button"
-                onClick={() => setPanelCollapsed(!panelCollapsed)}
-                className="w-full bg-navy px-5 pt-4 pb-3 text-left lg:cursor-default"
+            {/* Travel window */}
+            <div className="mb-12">
+              <div className="flex items-center gap-4 mb-4">
+                <p className="label-caps whitespace-nowrap" style={{ color: 'var(--er-gray-400)' }}>
+                  Travel window
+                </p>
+                <div className="flex-1 h-px" style={{ background: 'var(--er-gray-200)' }} />
+                {checkIn && checkOut ? (
+                  <button
+                    type="button"
+                    onClick={() => { setCheckIn(null); setCheckOut(null); }}
+                    className="whitespace-nowrap flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors hover:bg-red-50"
+                    style={{
+                      fontFamily: 'var(--er-font-sans)',
+                      fontSize: '0.8125rem',
+                      fontWeight: 500,
+                      color: 'rgb(185,28,28)',
+                      border: '1px solid rgba(185,28,28,0.25)',
+                      background: 'rgba(185,28,28,0.05)',
+                    }}
+                  >
+                    <X className="w-3.5 h-3.5" />
+                    Clear dates
+                  </button>
+                ) : (
+                  <p
+                    className="whitespace-nowrap hidden sm:block"
+                    style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.75rem', color: 'var(--er-gray-400)' }}
+                  >
+                    Applies to new requests
+                  </p>
+                )}
+              </div>
+              <div
+                className="px-5 py-4"
+                style={{
+                  background: 'var(--er-gray-50)',
+                  border: '1px solid var(--er-gray-200)',
+                  borderRadius: 'var(--er-radius-xl)',
+                  boxShadow: 'var(--er-shadow-xs)',
+                }}
               >
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-serif text-base font-medium text-white">Your Wishlist</h3>
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs text-gold font-medium tabular-nums">
-                      {requests.length} / {MAX_REQUESTS}
-                    </span>
-                    <span className="lg:hidden text-white/40">
-                      {panelCollapsed
-                        ? <ChevronDown className="w-4 h-4" />
-                        : <ChevronUp className="w-4 h-4" />}
-                    </span>
-                  </div>
-                </div>
-                {/* Progress bar */}
-                <div className="h-0.5 bg-white/10 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gold/70 rounded-full wishlist-progress"
-                    style={{ width: `${slotPct}%` }}
-                  />
-                </div>
-              </button>
+                <DateRangePicker
+                  checkIn={checkIn}
+                  checkOut={checkOut}
+                  onChange={(from, to) => {
+                    setCheckIn(from);
+                    setCheckOut(to);
+                  }}
+                />
+              </div>
+            </div>
 
-              {/* Body */}
-              <div className={`bg-white ${panelCollapsed ? 'hidden lg:block' : 'block'}`}>
-                <div className="p-4 max-h-[60vh] overflow-y-auto">
-                  {requests.length === 0 ? (
-                    <div className="py-10 text-center">
-                      <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
-                        <MapPin className="w-5 h-5 text-slate-300" />
-                      </div>
-                      <p className="text-sm text-slate-400 leading-relaxed max-w-[16rem] mx-auto">
-                        Select a destination below to start building your wishlist.
-                      </p>
+            {/* ── Featured — asymmetric editorial layout ── */}
+            {featuredDestinations.length > 0 && (
+              <section className="mb-14">
+                <SectionHeading label="Featured" />
+                {featuredDestinations.length === 1 ? (
+                  <HeroCard
+                    destination={featuredHero}
+                    isSelected={selectedDestination?.id === featuredHero.id}
+                    onClick={() => handleCardClick(featuredHero)}
+                    disabled={!canAddMore}
+                    variant="primary"
+                  />
+                ) : (
+                  /* Asymmetric: 63% primary + 37% secondary, matching heights */
+                  <div className="flex flex-col md:flex-row md:items-stretch gap-4">
+                    <div className="md:flex-[0_0_62%]">
+                      <HeroCard
+                        destination={featuredHero}
+                        isSelected={selectedDestination?.id === featuredHero.id}
+                        onClick={() => handleCardClick(featuredHero)}
+                        disabled={!canAddMore}
+                        variant="primary"
+                      />
                     </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {requests.map((req, index) => (
-                        <RequestListItem
-                          key={req.id}
-                          request={req}
-                          rank={index + 1}
-                          onEdit={() => setEditingRequest(req)}
-                          onRemove={() => removeRequest(req.id)}
+                    <div className="md:flex-1 flex flex-col gap-4">
+                      {featuredSecondary.map((dest) => (
+                        <HeroCard
+                          key={dest.id}
+                          destination={dest}
+                          isSelected={selectedDestination?.id === dest.id}
+                          onClick={() => handleCardClick(dest)}
+                          disabled={!canAddMore}
+                          variant="secondary"
+                          fillHeight={featuredSecondary.length === 1}
                         />
                       ))}
                     </div>
-                  )}
-                </div>
-
-                {requests.length > 0 && (
-                  <div className="px-4 pb-4 space-y-3">
-                    {requestsNeedingDates.length > 0 && (
-                      <div className="flex items-start gap-2 px-3 py-2.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800">
-                        <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
-                        <span>
-                          {requestsNeedingDates.length === 1
-                            ? '1 request needs real dates.'
-                            : `${requestsNeedingDates.length} requests need real dates.`}{' '}
-                          Edit now or continue and update in the next step.
-                        </span>
-                      </div>
-                    )}
-                    <button
-                      onClick={() => setView('allocate-points')}
-                      className="w-full flex items-center justify-center gap-2 py-3.5 gold-gradient text-white rounded-xl font-medium text-sm tracking-wide hover:opacity-90 transition-opacity"
-                    >
-                      Continue to Allocate Points
-                      <ArrowRight className="w-4 h-4" />
-                    </button>
-                    {requests.length >= MAX_REQUESTS && (
-                      <p className="label-caps text-center text-slate-400">
-                        {user.memberType === 'ultra'
-                          ? 'All 12 Ultra spots used'
-                          : 'Maximum 10 requests reached'}
-                      </p>
-                    )}
                   </div>
                 )}
-              </div>
-            </div>
+              </section>
+            )}
+          </div>
+
+          {/* ── Wishlist sidebar (desktop only in light section) ── */}
+          <div className="hidden lg:block lg:w-[22rem] flex-shrink-0">
+            <WishlistSidebar
+              requests={requests}
+              requestsNeedingDates={requestsNeedingDates}
+              panelCollapsed={panelCollapsed}
+              setPanelCollapsed={setPanelCollapsed}
+              slotPct={slotPct}
+              MAX_REQUESTS={MAX_REQUESTS}
+              user={user}
+              setView={setView}
+              setEditingRequest={setEditingRequest}
+              removeRequest={removeRequest}
+              openAnnotationCallout={openAnnotationCallout}
+            />
           </div>
         </div>
+      </div>
+
+      {/* ── Dark section: All Destinations ── */}
+      <div
+        className="mt-2 pb-16"
+        style={{ background: 'var(--color-navy)' }}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-10">
+          <div className="flex flex-col lg:flex-row gap-10">
+            <div className="flex-1 min-w-0">
+              <SectionHeadingDark
+                label="All destinations"
+                viewMode={destViewMode}
+                onToggleView={setDestViewMode}
+              />
+
+              {/* Search bar */}
+              <div className="relative mb-6">
+                <Search
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
+                  style={{ color: 'rgba(255,255,255,0.35)' }}
+                />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search by destination or region…"
+                  className="w-full pl-10 pr-10 py-2.5 outline-none transition-colors"
+                  style={{
+                    background: 'rgba(255,255,255,0.06)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    borderRadius: 'var(--er-radius-lg)',
+                    fontFamily: 'var(--er-font-sans)',
+                    fontSize: '0.875rem',
+                    color: '#fff',
+                  }}
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
+                    style={{ color: 'rgba(255,255,255,0.35)' }}
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+
+              {destViewMode === 'grid' ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {otherDestinations.length > 0 ? otherDestinations.map((dest) => (
+                    <DestinationCard
+                      key={dest.id}
+                      destination={dest}
+                      isSelected={selectedDestination?.id === dest.id}
+                      onClick={() => handleCardClick(dest)}
+                      disabled={!canAddMore}
+                    />
+                  )) : (
+                    <div className="col-span-3 py-16 text-center">
+                      <p style={{ fontFamily: 'var(--er-font-serif)', fontStyle: 'italic', fontWeight: 300, fontSize: '1.125rem', color: 'rgba(255,255,255,0.35)' }}>
+                        No destinations match "{searchQuery}"
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {otherDestinations.length > 0 ? otherDestinations.map((dest) => (
+                    <DestinationListRow
+                      key={dest.id}
+                      destination={dest}
+                      isSelected={selectedDestination?.id === dest.id}
+                      onClick={() => handleCardClick(dest)}
+                      disabled={!canAddMore}
+                    />
+                  )) : (
+                    <div className="py-16 text-center">
+                      <p style={{ fontFamily: 'var(--er-font-serif)', fontStyle: 'italic', fontWeight: 300, fontSize: '1.125rem', color: 'rgba(255,255,255,0.35)' }}>
+                        No destinations match "{searchQuery}"
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Sidebar placeholder on dark section for layout alignment */}
+            <div className="hidden lg:block lg:w-[22rem] flex-shrink-0" />
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile wishlist sidebar (outside layout flow, below everything) */}
+      <div className="lg:hidden px-4 py-6" style={{ background: 'var(--er-stone-50)' }}>
+        <WishlistSidebar
+          requests={requests}
+          requestsNeedingDates={requestsNeedingDates}
+          panelCollapsed={panelCollapsed}
+          setPanelCollapsed={setPanelCollapsed}
+          slotPct={slotPct}
+          MAX_REQUESTS={MAX_REQUESTS}
+          user={user}
+          setView={setView}
+          setEditingRequest={setEditingRequest}
+          removeRequest={removeRequest}
+          openAnnotationCallout={openAnnotationCallout}
+        />
       </div>
 
       {/* Mini panel */}
@@ -261,13 +348,255 @@ export function BrowseOrSearch() {
   );
 }
 
-/* ── Section heading ──────────────────────────────────────────────── */
-function SectionHeading({ label, icon }: { label: string; icon?: React.ReactNode }) {
+/* ── Wishlist sidebar (extracted) ────────────────────────────────── */
+function WishlistSidebar({
+  requests,
+  requestsNeedingDates,
+  panelCollapsed,
+  setPanelCollapsed,
+  slotPct,
+  MAX_REQUESTS,
+  user,
+  setView,
+  setEditingRequest,
+  removeRequest,
+  openAnnotationCallout,
+}: {
+  requests: VacationRequest[];
+  requestsNeedingDates: VacationRequest[];
+  panelCollapsed: boolean;
+  setPanelCollapsed: (v: boolean) => void;
+  slotPct: number;
+  MAX_REQUESTS: number;
+  user: { memberType: string };
+  setView: (v: AppView) => void;
+  setEditingRequest: (r: VacationRequest | null) => void;
+  removeRequest: (id: string) => void;
+  openAnnotationCallout: (id: AnnotationCalloutId) => void;
+}) {
   return (
-    <div className="flex items-center gap-3 mb-6">
-      {icon && <span className="text-gold">{icon}</span>}
-      <p className="label-caps text-slate-500">{label}</p>
-      <div className="flex-1 h-px bg-gradient-to-r from-gold/30 to-transparent" />
+    <div className="lg:sticky lg:top-20">
+      <div
+        className="overflow-hidden"
+        style={{
+          borderRadius: 'var(--er-radius-2xl)',
+          boxShadow: 'var(--er-shadow-md)',
+          border: '1px solid var(--er-gray-200)',
+        }}
+      >
+        {/* Dark header */}
+        <button
+          type="button"
+          onClick={() => setPanelCollapsed(!panelCollapsed)}
+          className="w-full text-left lg:cursor-default"
+          style={{ background: 'var(--color-navy)', padding: '16px 20px 12px' }}
+        >
+          <div className="flex items-center justify-between mb-2.5">
+            <h3 style={{
+              fontFamily: 'var(--er-font-serif)',
+              fontWeight: 300,
+              fontSize: '1rem',
+              color: '#fff',
+              margin: 0,
+              letterSpacing: '-0.01em',
+            }}>
+              Your Wishlist
+            </h3>
+            <div className="flex items-center gap-3">
+              <span
+                className="tabular-nums"
+                style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.75rem', color: 'var(--color-gold)', fontWeight: 500 }}
+              >
+                {requests.length} / {MAX_REQUESTS}
+              </span>
+              <span className="lg:hidden" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                {panelCollapsed
+                  ? <ChevronDown className="w-4 h-4" />
+                  : <ChevronUp className="w-4 h-4" />}
+              </span>
+            </div>
+          </div>
+          {/* Progress bar */}
+          <div className="h-px overflow-hidden" style={{ background: 'rgba(255,255,255,0.1)', borderRadius: '1px' }}>
+            <div
+              className="h-full wishlist-progress"
+              style={{ width: `${slotPct}%`, background: 'var(--color-gold)', opacity: 0.7 }}
+            />
+          </div>
+        </button>
+
+        {/* Body */}
+        <div
+          className={panelCollapsed ? 'hidden lg:block' : 'block'}
+          style={{ background: 'var(--er-white)' }}
+        >
+          <div className="p-4 max-h-[60vh] overflow-y-auto">
+            {requests.length === 0 ? (
+              <div className="py-12 text-center">
+                <div
+                  className="w-12 h-12 flex items-center justify-center mx-auto mb-4"
+                  style={{ background: 'var(--er-gray-50)', borderRadius: 'var(--er-radius-full)' }}
+                >
+                  <Compass className="w-5 h-5" style={{ color: 'var(--er-gray-300)' }} />
+                </div>
+                <p
+                  className="italic"
+                  style={{
+                    fontFamily: 'var(--er-font-serif)',
+                    fontWeight: 300,
+                    fontSize: '0.9375rem',
+                    color: 'var(--er-gray-400)',
+                    lineHeight: 1.5,
+                    maxWidth: '14rem',
+                    margin: '0 auto',
+                  }}
+                >
+                  Your next great escape begins here.
+                </p>
+                <p
+                  className="mt-2"
+                  style={{
+                    fontFamily: 'var(--er-font-sans)',
+                    fontSize: '0.75rem',
+                    color: 'var(--er-gray-400)',
+                  }}
+                >
+                  Select a destination to add it.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                {requests.map((req, index) => (
+                  <RequestListItem
+                    key={req.id}
+                    request={req}
+                    rank={index + 1}
+                    onEdit={() => setEditingRequest(req)}
+                    onRemove={() => removeRequest(req.id)}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {requests.length > 0 && (
+            <div className="px-4 pb-4 space-y-3">
+              {requestsNeedingDates.length > 0 && (
+                <div
+                  className="flex items-start gap-2 px-3 py-2.5 text-xs"
+                  style={{
+                    background: 'rgba(217,119,6,0.06)',
+                    border: '1px solid rgba(217,119,6,0.2)',
+                    borderRadius: 'var(--er-radius-lg)',
+                    color: '#92400e',
+                    fontFamily: 'var(--er-font-sans)',
+                  }}
+                >
+                  <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" style={{ color: 'var(--color-amber)' }} />
+                  <span>
+                    {requestsNeedingDates.length === 1
+                      ? '1 request needs real dates.'
+                      : `${requestsNeedingDates.length} requests need real dates.`}{' '}
+                    Edit or continue and update in the next step.
+                  </span>
+                </div>
+              )}
+              <button
+                onClick={() => {
+                  setView('allocate-points');
+                  openAnnotationCallout('member-continue-allocate');
+                }}
+                className="w-full flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
+                style={{
+                  padding: '14px 16px',
+                  background: 'linear-gradient(135deg, var(--color-gold-dark) 0%, var(--color-gold) 100%)',
+                  color: '#fff',
+                  borderRadius: 'var(--er-radius-xl)',
+                  fontFamily: 'var(--er-font-sans)',
+                  fontWeight: 500,
+                  fontSize: '0.8125rem',
+                  letterSpacing: '0.04em',
+                }}
+              >
+                Continue to Allocate Points
+                <ArrowRight className="w-4 h-4" />
+              </button>
+              {requests.length >= MAX_REQUESTS && (
+                <p className="label-caps text-center" style={{ color: 'var(--er-gray-400)' }}>
+                  {user.memberType === 'ultra' ? 'All 12 Ultra spots used' : 'Maximum 10 requests reached'}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Section heading (light) ──────────────────────────────────────── */
+function SectionHeading({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-4 mb-6">
+      <p className="label-caps whitespace-nowrap" style={{ color: 'var(--er-gray-500)' }}>{label}</p>
+      <div
+        className="flex-1 h-px"
+        style={{ background: 'linear-gradient(to right, rgba(201,169,110,0.3), transparent)' }}
+      />
+    </div>
+  );
+}
+
+/* ── Section heading (dark) ───────────────────────────────────────── */
+function SectionHeadingDark({
+  label,
+  viewMode,
+  onToggleView,
+}: {
+  label: string;
+  viewMode?: 'grid' | 'list';
+  onToggleView?: (mode: 'grid' | 'list') => void;
+}) {
+  return (
+    <div className="flex items-center gap-4 mb-6">
+      <p className="label-caps whitespace-nowrap" style={{ color: 'rgba(255,255,255,0.35)' }}>{label}</p>
+      <div
+        className="flex-1 h-px"
+        style={{ background: 'linear-gradient(to right, rgba(255,255,255,0.1), transparent)' }}
+      />
+      {viewMode && onToggleView && (
+        <div
+          className="flex items-center gap-0.5 flex-shrink-0"
+          style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 'var(--er-radius-sm)', padding: '3px' }}
+        >
+          <button
+            type="button"
+            onClick={() => onToggleView('grid')}
+            className="flex items-center justify-center w-7 h-7 transition-colors"
+            style={{
+              borderRadius: '3px',
+              background: viewMode === 'grid' ? 'rgba(255,255,255,0.12)' : 'transparent',
+              color: viewMode === 'grid' ? '#fff' : 'rgba(255,255,255,0.35)',
+            }}
+            title="Grid view"
+          >
+            <LayoutGrid className="w-3.5 h-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => onToggleView('list')}
+            className="flex items-center justify-center w-7 h-7 transition-colors"
+            style={{
+              borderRadius: '3px',
+              background: viewMode === 'list' ? 'rgba(255,255,255,0.12)' : 'transparent',
+              color: viewMode === 'list' ? '#fff' : 'rgba(255,255,255,0.35)',
+            }}
+            title="List view"
+          >
+            <List className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -288,16 +617,25 @@ function RequestListItem({
   const isReady = !request.isPlaceholderDates;
 
   return (
-    <div className="flex gap-3 p-2.5 rounded-xl hover:bg-slate-50 transition-colors group">
+    <div
+      className="flex gap-3 p-2.5 group transition-colors hover:bg-gray-50"
+      style={{ borderRadius: 'var(--er-radius-lg)' }}
+    >
       {/* Thumbnail with rank overlay */}
-      <div className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
+      <div
+        className="relative w-12 h-12 overflow-hidden flex-shrink-0"
+        style={{ borderRadius: 'var(--er-radius-sm)' }}
+      >
         <img
           src={request.destination.imageUrl}
           alt={request.destination.name}
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-black/30" />
-        <span className="absolute inset-0 flex items-center justify-center text-white text-xs font-semibold">
+        <div className="absolute inset-0" style={{ background: 'rgba(0,0,0,0.3)' }} />
+        <span
+          className="absolute inset-0 flex items-center justify-center tabular-nums"
+          style={{ color: '#fff', fontSize: '0.6875rem', fontFamily: 'var(--er-font-sans)', fontWeight: 500 }}
+        >
           {rank}
         </span>
       </div>
@@ -305,13 +643,24 @@ function RequestListItem({
       {/* Content */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5">
-          <p className="font-medium text-navy text-sm truncate">{request.destination.name}</p>
-          <span className={`flex-shrink-0 inline-block w-1.5 h-1.5 rounded-full ${isReady ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+          <p
+            className="truncate"
+            style={{ fontFamily: 'var(--er-font-sans)', fontWeight: 500, fontSize: '0.8125rem', color: 'var(--er-slate-800)' }}
+          >
+            {request.destination.name}
+          </p>
+          <span
+            className="flex-shrink-0 inline-block w-1.5 h-1.5"
+            style={{ borderRadius: '50%', background: isReady ? '#34d399' : 'var(--color-amber)' }}
+          />
         </div>
-        <p className="text-[11px] text-slate-400 mt-0.5 leading-snug">
-          {request.flexibleDates && <span className="text-gold">Flexible · </span>}
+        <p
+          className="mt-0.5 leading-snug"
+          style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.6875rem', color: 'var(--er-gray-400)' }}
+        >
+          {request.flexibleDates && <span style={{ color: 'var(--color-gold)' }}>Flexible · </span>}
           {formatDateRange(request.checkInDate, request.checkOutDate)}
-          <span className="text-slate-300"> · </span>
+          <span style={{ color: 'var(--er-gray-300)' }}> · </span>
           {nights}n
         </p>
       </div>
@@ -321,7 +670,8 @@ function RequestListItem({
         <button
           type="button"
           onClick={onEdit}
-          className="p-1.5 rounded-lg text-slate-400 hover:text-navy hover:bg-slate-100 transition-colors"
+          className="p-1.5 transition-colors hover:bg-gray-100"
+          style={{ borderRadius: 'var(--er-radius-sm)', color: 'var(--er-gray-400)' }}
           aria-label="Edit"
         >
           <Pencil className="w-3.5 h-3.5" />
@@ -329,7 +679,8 @@ function RequestListItem({
         <button
           type="button"
           onClick={onRemove}
-          className="p-1.5 rounded-lg text-slate-400 hover:text-coral hover:bg-coral/5 transition-colors"
+          className="p-1.5 transition-colors"
+          style={{ borderRadius: 'var(--er-radius-sm)', color: 'var(--er-gray-400)' }}
           aria-label="Remove"
         >
           <Trash2 className="w-3.5 h-3.5" />
@@ -339,60 +690,148 @@ function RequestListItem({
   );
 }
 
+/* ── Helpers ──────────────────────────────────────────────────────── */
+function bedroomRange(units: { bedrooms: number }[]): string | null {
+  if (!units.length) return null;
+  const beds = units.map((u) => u.bedrooms);
+  const min = Math.min(...beds);
+  const max = Math.max(...beds);
+  return min === max ? `${min} bed${min !== 1 ? 's' : ''}` : `${min}–${max} beds`;
+}
+
 /* ── Hero card (featured) ─────────────────────────────────────────── */
 function HeroCard({
   destination,
   isSelected,
   onClick,
   disabled,
+  variant = 'primary',
+  fillHeight = false,
 }: {
   destination: Destination;
   isSelected?: boolean;
   onClick: () => void;
   disabled?: boolean;
+  variant?: 'primary' | 'secondary';
+  fillHeight?: boolean;
 }) {
+  const isPrimary = variant === 'primary';
+
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`destination-card group text-left rounded-2xl overflow-hidden border transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
-        isSelected
-          ? 'border-gold ring-2 ring-gold/40 shadow-lg'
-          : 'border-slate-200 hover:border-slate-300'
-      }`}
+      className="destination-card group text-left w-full overflow-hidden transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+      style={{
+        borderRadius: 'var(--er-radius-sm)',
+        border: isSelected ? '1px solid var(--color-gold)' : '1px solid var(--er-gray-200)',
+        boxShadow: isSelected ? '0 0 0 3px rgba(201,169,110,0.2)' : 'none',
+        display: 'block',
+        height: fillHeight ? '100%' : 'auto',
+      }}
     >
-      <div className="aspect-[16/9] overflow-hidden relative">
+      <div
+        className="overflow-hidden relative"
+        style={{
+          aspectRatio: fillHeight ? undefined : isPrimary ? '16/10' : '16/9',
+          height: fillHeight ? '100%' : undefined,
+          minHeight: fillHeight ? '220px' : undefined,
+        }}
+      >
         <img
           src={destination.imageUrl}
           alt={destination.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent" />
+        {/* Cinematic gradient — deeper bottom weight */}
+        <div
+          className="absolute inset-0"
+          style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.18) 45%, rgba(0,0,0,0) 100%)' }}
+        />
 
-        {/* Badge */}
-        <div className="absolute top-3 left-3">
-          <span className="px-2.5 py-1 bg-gold/90 text-white label-caps rounded-full tracking-[0.08em]">
-            {destination.available ? 'Available' : 'Featured'}
-          </span>
-        </div>
-
-        {/* Selected ring inset */}
+        {/* Inset ring on select */}
         {isSelected && (
-          <div className="absolute inset-0 ring-2 ring-gold/60 ring-inset rounded-2xl pointer-events-none" />
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{ boxShadow: 'inset 0 0 0 2px rgba(201,169,110,0.7)', borderRadius: 'var(--er-radius-sm)' }}
+          />
+        )}
+
+        {/* Demand badge — super-peak only */}
+        {destination.demandTier === 'super-peak' && (
+          <div
+            className="absolute top-3.5 left-3.5 px-2.5 py-1"
+            style={{
+              background: 'rgba(194,65,12,0.82)',
+              backdropFilter: 'blur(6px)',
+              borderRadius: 'var(--er-radius-full)',
+              fontFamily: 'var(--er-font-sans)',
+              fontSize: '0.6875rem',
+              fontWeight: 500,
+              color: '#fff',
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+            }}
+          >
+            High Demand
+          </div>
+        )}
+
+        {/* Residence count badge */}
+        {destination.units.length > 0 && (
+          <div
+            className="absolute top-3.5 right-3.5 flex items-center gap-1 px-2 py-1"
+            style={{
+              background: 'rgba(0,0,0,0.45)',
+              backdropFilter: 'blur(6px)',
+              borderRadius: 'var(--er-radius-full)',
+              fontFamily: 'var(--er-font-sans)',
+              fontSize: '0.6875rem',
+              color: 'rgba(255,255,255,0.85)',
+              letterSpacing: '0.03em',
+            }}
+          >
+            <Home className="w-2.5 h-2.5" style={{ opacity: 0.7 }} />
+            {destination.units.length} {destination.units.length === 1 ? 'residence' : 'residences'}
+          </div>
         )}
 
         {/* Bottom text */}
-        <div className="absolute bottom-4 left-4 right-4">
-          <p className="font-serif text-[1.35rem] font-semibold text-white leading-tight">
+        <div className="absolute bottom-0 left-0 right-0 px-5 pb-5">
+          <p
+            style={{
+              fontFamily: 'var(--er-font-serif)',
+              fontWeight: 300,
+              fontSize: isPrimary ? '1.875rem' : '1.375rem',
+              color: '#fff',
+              lineHeight: 1.1,
+              letterSpacing: '-0.02em',
+            }}
+          >
             {destination.name}
           </p>
-          <div className="flex items-center gap-1 text-white/70 text-xs mt-1">
-            <MapPin className="w-3 h-3" />
-            <span>{destination.region}</span>
+          <div className="flex items-center gap-1.5 mt-1.5">
+            <MapPin className="w-3 h-3" style={{ color: 'rgba(255,255,255,0.55)' }} />
+            <span
+              className="label-caps"
+              style={{ color: 'rgba(255,255,255,0.55)', letterSpacing: '0.1em' }}
+            >
+              {destination.region}
+            </span>
           </div>
-          <div className={`mt-3 inline-flex items-center gap-1.5 text-xs font-medium transition-all duration-200 ${isSelected ? 'text-gold' : 'text-white/60 group-hover:text-gold'}`}>
-            {isSelected ? '— close' : '+ add request'}
+          <div
+            className="mt-3 inline-flex items-center gap-1.5 transition-all duration-200"
+            style={{
+              fontFamily: 'var(--er-font-sans)',
+              fontSize: '0.75rem',
+              fontWeight: 400,
+              color: isSelected ? 'var(--color-gold-light)' : 'rgba(255,255,255,0)',
+            }}
+          >
+            <span className="group-hover:text-gold-light transition-all duration-200" style={{ color: isSelected ? 'var(--color-gold-light)' : 'rgba(255,255,255,0.5)' }}>
+              {isSelected ? '— close' : 'Request stay →'}
+            </span>
           </div>
         </div>
       </div>
@@ -400,18 +839,130 @@ function HeroCard({
   );
 }
 
-/* ── Destination card (standard grid) ────────────────────────────── */
-function DestinationCard({
+/* ── Destination list row (list view) ────────────────────────────── */
+function DestinationListRow({
   destination,
   isSelected,
   onClick,
-  showAvailableBadge,
   disabled,
 }: {
   destination: Destination;
   isSelected?: boolean;
   onClick: () => void;
-  showAvailableBadge?: boolean;
+  disabled?: boolean;
+}) {
+  const beds = bedroomRange(destination.units);
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className="destination-card group text-left w-full overflow-hidden transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-stretch"
+      style={{
+        borderRadius: 'var(--er-radius-sm)',
+        border: isSelected ? '1px solid var(--color-gold)' : '1px solid rgba(255,255,255,0.08)',
+        boxShadow: isSelected ? '0 0 0 3px rgba(201,169,110,0.2)' : 'none',
+        background: isSelected ? 'rgba(201,169,110,0.06)' : 'rgba(255,255,255,0.03)',
+      }}
+    >
+      {/* Thumbnail */}
+      <div className="relative flex-shrink-0 w-28 sm:w-36 overflow-hidden" style={{ minHeight: '80px' }}>
+        <img
+          src={destination.imageUrl}
+          alt={destination.name}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+        />
+        {isSelected && (
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{ boxShadow: 'inset 0 0 0 2px rgba(201,169,110,0.7)' }}
+          />
+        )}
+      </div>
+
+      {/* Info */}
+      <div className="flex-1 flex items-center px-4 py-3 min-w-0 gap-4">
+        <div className="flex-1 min-w-0">
+          <p
+            style={{
+              fontFamily: 'var(--er-font-serif)',
+              fontWeight: 300,
+              fontSize: '1.0625rem',
+              color: '#fff',
+              letterSpacing: '-0.01em',
+              lineHeight: 1.2,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
+            {destination.name}
+          </p>
+          <div className="flex items-center gap-3 mt-1.5 flex-wrap">
+            <div className="flex items-center gap-1">
+              <MapPin className="w-2.5 h-2.5 flex-shrink-0" style={{ color: 'rgba(255,255,255,0.4)' }} />
+              <span className="label-caps" style={{ color: 'rgba(255,255,255,0.4)', letterSpacing: '0.09em' }}>
+                {destination.region}
+              </span>
+            </div>
+            {destination.units.length > 0 && (
+              <div className="flex items-center gap-1">
+                <Home className="w-2.5 h-2.5 flex-shrink-0" style={{ color: 'rgba(255,255,255,0.35)' }} />
+                <span style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.6875rem', color: 'rgba(255,255,255,0.4)' }}>
+                  {destination.units.length} {destination.units.length === 1 ? 'residence' : 'residences'}
+                  {beds ? ` · ${beds}` : ''}
+                </span>
+              </div>
+            )}
+            {destination.demandTier === 'super-peak' && (
+              <span
+                style={{
+                  fontFamily: 'var(--er-font-sans)',
+                  fontSize: '0.5625rem',
+                  fontWeight: 500,
+                  color: 'rgb(251,146,60)',
+                  letterSpacing: '0.06em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                High Demand
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* CTA */}
+        <div
+          className="flex-shrink-0 transition-all duration-200"
+          style={{
+            fontFamily: 'var(--er-font-sans)',
+            fontSize: '0.75rem',
+            color: isSelected ? 'var(--color-gold-light)' : 'rgba(255,255,255,0)',
+          }}
+        >
+          <span
+            className="group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap"
+            style={{ opacity: isSelected ? 1 : 0, color: 'var(--color-gold-light)' }}
+          >
+            {isSelected ? '— close' : 'Request stay →'}
+          </span>
+        </div>
+      </div>
+    </button>
+  );
+}
+
+/* ── Destination card (all destinations — dark section) ───────────── */
+function DestinationCard({
+  destination,
+  isSelected,
+  onClick,
+  disabled,
+}: {
+  destination: Destination;
+  isSelected?: boolean;
+  onClick: () => void;
   disabled?: boolean;
 }) {
   return (
@@ -419,46 +970,110 @@ function DestinationCard({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`destination-card group text-left rounded-2xl overflow-hidden border transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
-        isSelected
-          ? 'border-gold ring-2 ring-gold/40 shadow-lg'
-          : 'border-slate-200 hover:border-slate-300'
-      }`}
+      className="destination-card group text-left w-full overflow-hidden transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+      style={{
+        borderRadius: 'var(--er-radius-sm)',
+        border: isSelected ? '1px solid var(--color-gold)' : '1px solid rgba(255,255,255,0.08)',
+        boxShadow: isSelected ? '0 0 0 3px rgba(201,169,110,0.2)' : 'none',
+        display: 'block',
+      }}
     >
-      {/* Portrait image — no footer strip */}
-      <div className="aspect-square overflow-hidden relative">
+      <div className="aspect-[4/3] overflow-hidden relative">
         <img
           src={destination.imageUrl}
           alt={destination.name}
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
+        <div
+          className="absolute inset-0"
+          style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.12) 50%, rgba(0,0,0,0) 100%)' }}
+        />
 
-        {/* Available badge top-left */}
-        {showAvailableBadge && (
-          <div className="absolute top-3 left-3">
-            <span className="px-2 py-0.5 bg-white/90 text-navy label-caps rounded-full tracking-[0.06em]">
-              Available
-            </span>
+        {isSelected && (
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{ boxShadow: 'inset 0 0 0 2px rgba(201,169,110,0.7)', borderRadius: 'var(--er-radius-sm)' }}
+          />
+        )}
+
+        {/* Demand badge — super-peak only */}
+        {destination.demandTier === 'super-peak' && (
+          <div
+            className="absolute top-2.5 left-2.5 px-2 py-0.5"
+            style={{
+              background: 'rgba(194,65,12,0.82)',
+              backdropFilter: 'blur(6px)',
+              borderRadius: 'var(--er-radius-full)',
+              fontFamily: 'var(--er-font-sans)',
+              fontSize: '0.5625rem',
+              fontWeight: 500,
+              color: '#fff',
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+            }}
+          >
+            High Demand
           </div>
         )}
 
-        {/* Selected inset ring */}
-        {isSelected && (
-          <div className="absolute inset-0 ring-2 ring-gold/60 ring-inset rounded-2xl pointer-events-none" />
+        {/* Residence count badge */}
+        {destination.units.length > 0 && (
+          <div
+            className="absolute top-2.5 right-2.5 flex items-center gap-1 px-1.5 py-0.5"
+            style={{
+              background: 'rgba(0,0,0,0.45)',
+              backdropFilter: 'blur(6px)',
+              borderRadius: 'var(--er-radius-full)',
+              fontFamily: 'var(--er-font-sans)',
+              fontSize: '0.625rem',
+              color: 'rgba(255,255,255,0.8)',
+              letterSpacing: '0.03em',
+            }}
+          >
+            <Home className="w-2 h-2" style={{ opacity: 0.7 }} />
+            {destination.units.length} {destination.units.length === 1 ? 'residence' : 'residences'}
+          </div>
         )}
 
-        {/* Bottom text */}
-        <div className="absolute bottom-3.5 left-4 right-4">
-          <p className="font-serif text-lg font-semibold text-white leading-tight truncate">
+        <div className="absolute bottom-0 left-0 right-0 px-4 pb-4">
+          <p
+            style={{
+              fontFamily: 'var(--er-font-serif)',
+              fontWeight: 300,
+              fontSize: '1.125rem',
+              color: '#fff',
+              lineHeight: 1.2,
+              letterSpacing: '-0.01em',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
             {destination.name}
           </p>
-          <div className="flex items-center gap-1 text-white/60 text-xs mt-0.5">
-            <MapPin className="w-3 h-3" />
-            <span>{destination.region}</span>
+          <div className="flex items-center gap-1 mt-0.5">
+            <MapPin className="w-3 h-3" style={{ color: 'rgba(255,255,255,0.45)' }} />
+            <span
+              className="label-caps"
+              style={{ color: 'rgba(255,255,255,0.45)', letterSpacing: '0.09em' }}
+            >
+              {destination.region}
+            </span>
           </div>
-          <div className={`mt-2.5 inline-flex items-center gap-1.5 text-xs font-medium transition-all duration-200 ${isSelected ? 'text-gold' : 'text-white/0 group-hover:text-gold'}`}>
-            {isSelected ? '— close' : '+ add request'}
+          <div
+            className="mt-2 transition-all duration-200"
+            style={{
+              fontFamily: 'var(--er-font-sans)',
+              fontSize: '0.7rem',
+              color: isSelected ? 'var(--color-gold-light)' : 'rgba(255,255,255,0)',
+            }}
+          >
+            <span
+              className="group-hover:opacity-100 transition-opacity duration-200"
+              style={{ opacity: isSelected ? 1 : 0, color: 'var(--color-gold-light)' }}
+            >
+              {isSelected ? '— close' : 'Request stay →'}
+            </span>
           </div>
         </div>
       </div>

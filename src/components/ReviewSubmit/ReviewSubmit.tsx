@@ -33,7 +33,7 @@ import {
 } from '../../utils/helpers';
 
 export function ReviewSubmit() {
-  const { state, setView, submitRequests, setTokensToUse } = useRAS();
+  const { state, setView, submitRequests, setTokensToUse, openAnnotationCallout } = useRAS();
   const { requests, user, rasRunDate, tokensToUse } = state;
 
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -56,8 +56,8 @@ export function ReviewSubmit() {
       : 0;
 
   const handleSubmit = async () => {
+    openAnnotationCallout('member-confirm-submit');
     setIsSubmitting(true);
-    // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 1500));
     submitRequests();
     setIsSubmitting(false);
@@ -67,31 +67,61 @@ export function ReviewSubmit() {
   if (isSubmitted) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-16 text-center">
-        <div className="w-20 h-20 mx-auto mb-6 bg-teal/10 rounded-full flex items-center justify-center">
+        <div
+          className="w-20 h-20 mx-auto mb-6 flex items-center justify-center"
+          style={{ background: 'rgba(43,142,115,0.08)', borderRadius: '50%' }}
+        >
           <CheckCircle2 className="w-10 h-10 text-teal" />
         </div>
-        <h2 className="font-serif text-3xl font-semibold text-navy mb-4">
-          Requests Submitted Successfully!
+        <h2 style={{
+          fontFamily: 'var(--er-font-serif)',
+          fontWeight: 300,
+          fontSize: '2rem',
+          letterSpacing: '-0.02em',
+          color: 'var(--er-slate-800)',
+          marginBottom: '1rem',
+        }}>
+          Requests Submitted
         </h2>
-        <p className="text-slate-500 mb-4">
+        <p style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.9375rem', color: 'var(--er-gray-500)', marginBottom: '0.75rem' }}>
           Your {requests.length} vacation request{requests.length > 1 ? 's have' : ' has'} been
           entered into the Q2 2025 lottery. You can win up to{' '}
-          <strong className="text-navy">{tokensToUse}</strong> of your requests.
+          <strong style={{ color: 'var(--er-slate-800)', fontWeight: 500 }}>{tokensToUse}</strong> of your requests.
         </p>
-        <p className="text-slate-500 mb-8">
+        <p style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.9375rem', color: 'var(--er-gray-500)', marginBottom: '2.5rem' }}>
           Results will be available on{' '}
-          <strong className="text-navy">{format(rasRunDate, 'MMMM d, yyyy')}</strong>.
+          <strong style={{ color: 'var(--er-slate-800)', fontWeight: 500 }}>{format(rasRunDate, 'MMMM d, yyyy')}</strong>.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <button
             onClick={() => setView('results')}
-            className="px-6 py-3 gold-gradient text-white rounded-xl font-medium transition-premium hover:opacity-90"
+            style={{
+              padding: '14px 24px',
+              background: 'linear-gradient(135deg, var(--color-gold-dark) 0%, var(--color-gold) 100%)',
+              color: '#fff',
+              borderRadius: 'var(--er-radius-xl)',
+              fontFamily: 'var(--er-font-sans)',
+              fontSize: '0.875rem',
+              fontWeight: 500,
+              border: 'none',
+              cursor: 'pointer',
+            }}
           >
             View Demo Results
           </button>
           <button
             onClick={() => window.location.reload()}
-            className="px-6 py-3 bg-white border border-slate-200 text-navy rounded-xl font-medium transition-premium hover:bg-slate-50"
+            style={{
+              padding: '14px 24px',
+              background: 'var(--er-white)',
+              border: '1px solid var(--er-gray-200)',
+              color: 'var(--er-slate-700)',
+              borderRadius: 'var(--er-radius-xl)',
+              fontFamily: 'var(--er-font-sans)',
+              fontSize: '0.875rem',
+              fontWeight: 400,
+              cursor: 'pointer',
+            }}
           >
             Start Over
           </button>
@@ -101,53 +131,100 @@ export function ReviewSubmit() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="max-w-4xl mx-auto px-6 py-10">
       {/* Header */}
       <div className="mb-8">
-        <h2 className="font-serif text-3xl font-semibold text-navy">Review & Submit</h2>
-        <p className="text-slate-500 mt-2">
+        <h2 style={{
+          fontFamily: 'var(--er-font-serif)',
+          fontWeight: 300,
+          fontSize: '2rem',
+          letterSpacing: '-0.02em',
+          color: 'var(--er-slate-800)',
+          margin: 0,
+          lineHeight: 1.1,
+        }}>
+          Review & Submit
+        </h2>
+        <p className="mt-2" style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.875rem', color: 'var(--er-gray-500)' }}>
           Review your points allocation and requests before submitting to the lottery.
         </p>
       </div>
 
       {/* Points strategy summary */}
       {totalPoints > 0 && (
-        <div className="mb-8 p-6 bg-white rounded-2xl card-shadow">
-          <h3 className="font-serif text-lg font-semibold text-navy mb-4">Points allocation</h3>
+        <div
+          className="mb-8 p-6"
+          style={{
+            background: 'var(--er-white)',
+            border: '1px solid var(--er-gray-200)',
+            borderRadius: 'var(--er-radius-xl)',
+            boxShadow: 'var(--er-shadow-sm)',
+          }}
+        >
+          <h3 style={{
+            fontFamily: 'var(--er-font-serif)',
+            fontWeight: 300,
+            fontSize: '1.25rem',
+            color: 'var(--er-slate-800)',
+            marginBottom: '1rem',
+          }}>
+            Points allocation
+          </h3>
           <div className="flex flex-wrap items-center gap-4 mb-4">
             <div className="flex items-center gap-2">
-              <span className="text-2xl font-bold text-navy tabular-nums">{pointsAllocated}</span>
-              <span className="text-slate-500">of {totalPoints} points allocated</span>
+              <span
+                className="tabular-nums"
+                style={{ fontFamily: 'var(--er-font-sans)', fontSize: '1.5rem', fontWeight: 500, color: 'var(--er-slate-800)' }}
+              >
+                {pointsAllocated}
+              </span>
+              <span style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.875rem', color: 'var(--er-gray-500)' }}>
+                of {totalPoints} points allocated
+              </span>
             </div>
             {pointsAllocated < totalPoints && (
-              <span className="text-sm text-slate-500">
+              <span style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.8125rem', color: 'var(--er-gray-500)' }}>
                 {totalPoints - pointsAllocated} points unused (optional)
               </span>
             )}
           </div>
           {topRequest && topPercent >= 30 && (
-            <p className="text-sm text-navy-light">
-              You’re heavily prioritizing{' '}
-              <strong className="text-navy">{topRequest.destination.name}</strong> (
-              {topPercent}% of your points).
+            <p style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.875rem', color: 'var(--er-gray-600)' }}>
+              You're heavily prioritizing{' '}
+              <strong style={{ color: 'var(--er-slate-800)', fontWeight: 500 }}>{topRequest.destination.name}</strong>{' '}
+              ({topPercent}% of your points).
             </p>
           )}
-          {/* Simple bar: relative weight of each request */}
+          {/* Points bars */}
           <div className="mt-4 space-y-2">
             {requests.map((req) => {
               const pct = totalPoints > 0 ? (req.pointsAllocated / totalPoints) * 100 : 0;
               return (
                 <div key={req.id} className="flex items-center gap-3">
-                  <div className="w-32 text-sm text-slate-600 truncate">
+                  <div
+                    className="flex-1 min-w-0 truncate"
+                    style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.8125rem', color: 'var(--er-gray-600)' }}
+                  >
                     {req.destination.name}
                   </div>
-                  <div className="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden">
+                  <div
+                    className="w-28 flex-shrink-0 overflow-hidden"
+                    style={{ height: '4px', background: 'var(--er-gray-100)', borderRadius: '2px' }}
+                  >
                     <div
-                      className="h-full gold-gradient rounded-full transition-all duration-300"
-                      style={{ width: `${pct}%` }}
+                      style={{
+                        width: `${pct}%`,
+                        height: '100%',
+                        background: 'linear-gradient(to right, var(--color-gold-dark), var(--color-gold))',
+                        borderRadius: '2px',
+                        transition: 'width 0.3s',
+                      }}
                     />
                   </div>
-                  <span className="w-12 text-right text-sm font-medium text-navy tabular-nums">
+                  <span
+                    className="flex-shrink-0 w-14 text-right tabular-nums"
+                    style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.8125rem', fontWeight: 500, color: req.pointsAllocated === 0 ? 'var(--er-gray-400)' : 'var(--color-gold-dark)' }}
+                  >
                     {req.pointsAllocated} pts
                   </span>
                 </div>
@@ -158,7 +235,7 @@ export function ReviewSubmit() {
       )}
 
       <div className="grid lg:grid-cols-3 gap-8">
-        {/* Request summary */}
+        {/* Request cards */}
         <div className="lg:col-span-2 space-y-4">
           {requests.map((request, index) => {
             const trvr = calculateTRVR(user, request.destination.id);
@@ -167,14 +244,37 @@ export function ReviewSubmit() {
             const nights = getNights(request.checkInDate, request.checkOutDate);
 
             return (
-              <div key={request.id} className="bg-white rounded-xl overflow-hidden card-shadow">
+              <div
+                key={request.id}
+                style={{
+                  background: 'var(--er-white)',
+                  borderRadius: 'var(--er-radius-xl)',
+                  overflow: 'hidden',
+                  border: '1px solid var(--er-gray-200)',
+                  boxShadow: 'var(--er-shadow-sm)',
+                }}
+              >
                 <div className="flex">
-                  {/* Rank + points */}
-                  <div className="flex-shrink-0 w-16 bg-navy flex flex-col items-center justify-center py-2">
-                    <span className="text-xl font-bold text-white">#{index + 1}</span>
-                    <span className="text-xs text-gold mt-0.5 tabular-nums">
-                      {request.pointsAllocated} pts
-                    </span>
+                  {/* Rank + points strip */}
+                  <div
+                    className="flex-shrink-0 w-16 flex flex-col items-center justify-center py-3 gap-1"
+                    style={{ background: 'var(--er-slate-800)' }}
+                  >
+                    <div
+                      className="tabular-nums"
+                      style={{ fontFamily: 'var(--er-font-sans)', fontWeight: 500, fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', letterSpacing: '0.05em' }}
+                    >
+                      #{index + 1}
+                    </div>
+                    <div
+                      className="tabular-nums"
+                      style={{ fontFamily: 'var(--er-font-sans)', fontWeight: 500, fontSize: '1rem', color: 'var(--color-gold)', lineHeight: 1 }}
+                    >
+                      {request.pointsAllocated}
+                    </div>
+                    <div style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.625rem', color: 'rgba(255,255,255,0.35)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                      pts
+                    </div>
                   </div>
 
                   {/* Image */}
@@ -190,12 +290,21 @@ export function ReviewSubmit() {
                   <div className="flex-1 p-4">
                     <div className="flex items-start justify-between">
                       <div>
-                        <h3 className="font-serif text-lg font-semibold text-navy">
+                        <h3 style={{
+                          fontFamily: 'var(--er-font-serif)',
+                          fontWeight: 300,
+                          fontSize: '1.125rem',
+                          color: 'var(--er-slate-800)',
+                          margin: 0,
+                          letterSpacing: '-0.01em',
+                        }}>
                           {request.destination.name}
                         </h3>
-                        <div className="flex items-center gap-1 text-sm text-slate-500">
-                          <MapPin className="w-3.5 h-3.5" />
-                          <span>{request.destination.region}</span>
+                        <div className="flex items-center gap-1 mt-0.5">
+                          <MapPin className="w-3 h-3 flex-shrink-0" style={{ color: 'var(--er-gray-400)' }} />
+                          <span className="label-caps" style={{ color: 'var(--er-gray-400)', letterSpacing: '0.09em' }}>
+                            {request.destination.region}
+                          </span>
                         </div>
                       </div>
                       <BoostIndicator
@@ -206,44 +315,64 @@ export function ReviewSubmit() {
                       />
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-3 mt-3 text-sm text-navy-light">
+                    <div className="flex flex-wrap items-center gap-3 mt-3 text-sm">
                       <div className="flex items-center gap-1">
-                        <Calendar className="w-4 h-4 text-gold" />
-                        <span>{formatDateRange(request.checkInDate, request.checkOutDate)}</span>
+                        <Calendar className="w-4 h-4 flex-shrink-0 text-gold" />
+                        <span style={{ fontFamily: 'var(--er-font-sans)', color: 'var(--er-gray-600)' }}>
+                          {formatDateRange(request.checkInDate, request.checkOutDate)}
+                        </span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <Moon className="w-4 h-4 text-gold" />
-                        <span>{nights} nights</span>
+                        <Moon className="w-4 h-4 flex-shrink-0 text-gold" />
+                        <span style={{ fontFamily: 'var(--er-font-sans)', color: 'var(--er-gray-600)' }}>
+                          {nights} nights
+                        </span>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1 mt-1 text-sm text-navy-light">
-                      <Home className="w-4 h-4 text-gold" />
-                      <span>{formatUnitPreference(request)}</span>
+                    <div className="flex items-center gap-1 mt-1">
+                      <Home className="w-4 h-4 flex-shrink-0 text-gold" />
+                      <span style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.875rem', color: 'var(--er-gray-600)' }}>
+                        {formatUnitPreference(request)}
+                      </span>
                     </div>
 
                     <div className="flex flex-wrap gap-2 mt-2">
                       {request.flexibleDates && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-100 text-slate-600 text-xs rounded-full">
+                        <span
+                          className="inline-flex items-center gap-1 px-2 py-0.5 text-xs"
+                          style={{ background: 'var(--er-gray-50)', color: 'var(--er-gray-600)', borderRadius: 'var(--er-radius-full)', border: '1px solid var(--er-gray-200)' }}
+                        >
                           <Shuffle className="w-3 h-3" />
                           ±2 days
                         </span>
                       )}
                       {request.mustIncludeWeekend && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-100 text-slate-600 text-xs rounded-full">
+                        <span
+                          className="inline-flex items-center gap-1 px-2 py-0.5 text-xs"
+                          style={{ background: 'var(--er-gray-50)', color: 'var(--er-gray-600)', borderRadius: 'var(--er-radius-full)', border: '1px solid var(--er-gray-200)' }}
+                        >
                           <CalendarDays className="w-3 h-3" />
                           Weekend
                         </span>
                       )}
                       {isDuplicate && request.limitToOneWin && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber/10 text-amber text-xs rounded-full">
+                        <span
+                          className="inline-flex items-center gap-1 px-2 py-0.5 text-xs"
+                          style={{ background: 'rgba(217,119,6,0.06)', color: 'var(--color-amber)', borderRadius: 'var(--er-radius-full)' }}
+                        >
                           Limit to 1 win
                         </span>
                       )}
                     </div>
 
                     {request.notes && (
-                      <p className="mt-2 text-sm text-slate-500 italic">"{request.notes}"</p>
+                      <p
+                        className="mt-2 italic"
+                        style={{ fontFamily: 'var(--er-font-serif)', fontSize: '0.875rem', color: 'var(--er-gray-500)' }}
+                      >
+                        "{request.notes}"
+                      </p>
                     )}
                   </div>
                 </div>
@@ -254,17 +383,38 @@ export function ReviewSubmit() {
 
         {/* Summary sidebar */}
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-xl p-6 card-shadow sticky top-24">
-            <h3 className="font-serif text-lg font-semibold text-navy mb-6">Summary</h3>
+          <div
+            className="sticky top-24 p-6"
+            style={{
+              background: 'var(--er-white)',
+              border: '1px solid var(--er-gray-200)',
+              borderRadius: 'var(--er-radius-xl)',
+              boxShadow: 'var(--er-shadow-sm)',
+            }}
+          >
+            <h3 style={{
+              fontFamily: 'var(--er-font-serif)',
+              fontWeight: 300,
+              fontSize: '1.25rem',
+              color: 'var(--er-slate-800)',
+              marginBottom: '1.5rem',
+            }}>
+              Summary
+            </h3>
 
-            {/* How many wins do you want? */}
-            <div className="mb-6 pb-6 border-b border-slate-100">
+            {/* How many wins */}
+            <div
+              className="mb-6 pb-6"
+              style={{ borderBottom: '1px solid var(--er-gray-100)' }}
+            >
               <div className="flex items-center gap-2 mb-3">
-                <Trophy className="w-5 h-5 text-gold" />
-                <span className="font-medium text-navy">How many wins do you want?</span>
+                <Trophy className="w-4 h-4 text-gold" />
+                <span style={{ fontFamily: 'var(--er-font-sans)', fontWeight: 500, fontSize: '0.875rem', color: 'var(--er-slate-800)' }}>
+                  How many wins do you want?
+                </span>
               </div>
 
-              <p className="text-sm text-slate-500 mb-4">
+              <p style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.8125rem', color: 'var(--er-gray-500)', marginBottom: '1rem' }}>
                 You can win up to this many of your requests in the lottery.
               </p>
 
@@ -273,18 +423,26 @@ export function ReviewSubmit() {
                 <button
                   onClick={() => setTokensToUse(Math.max(1, tokensToUse - 1))}
                   disabled={tokensToUse <= 1}
-                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
-                    tokensToUse <= 1
-                      ? 'bg-slate-100 text-slate-300 cursor-not-allowed'
-                      : 'bg-slate-100 text-navy hover:bg-slate-200'
-                  }`}
+                  className="w-9 h-9 flex items-center justify-center transition-colors"
+                  style={{
+                    background: tokensToUse <= 1 ? 'var(--er-gray-50)' : 'var(--er-gray-100)',
+                    color: tokensToUse <= 1 ? 'var(--er-gray-300)' : 'var(--er-slate-700)',
+                    borderRadius: 'var(--er-radius-sm)',
+                    border: '1px solid var(--er-gray-200)',
+                    cursor: tokensToUse <= 1 ? 'not-allowed' : 'pointer',
+                  }}
                 >
-                  <Minus className="w-5 h-5" />
+                  <Minus className="w-4 h-4" />
                 </button>
 
                 <div className="text-center">
-                  <div className="text-4xl font-bold text-navy tabular-nums">{tokensToUse}</div>
-                  <div className="text-sm text-slate-500">
+                  <div
+                    className="tabular-nums"
+                    style={{ fontFamily: 'var(--er-font-sans)', fontSize: '2.5rem', fontWeight: 300, color: 'var(--er-slate-800)', lineHeight: 1 }}
+                  >
+                    {tokensToUse}
+                  </div>
+                  <div style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.75rem', color: 'var(--er-gray-400)', marginTop: '2px' }}>
                     {tokensToUse === 1 ? 'win' : 'wins'} max
                   </div>
                 </div>
@@ -292,69 +450,87 @@ export function ReviewSubmit() {
                 <button
                   onClick={() => setTokensToUse(Math.min(user.arTokens, tokensToUse + 1))}
                   disabled={tokensToUse >= user.arTokens}
-                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
-                    tokensToUse >= user.arTokens
-                      ? 'bg-slate-100 text-slate-300 cursor-not-allowed'
-                      : 'bg-slate-100 text-navy hover:bg-slate-200'
-                  }`}
+                  className="w-9 h-9 flex items-center justify-center transition-colors"
+                  style={{
+                    background: tokensToUse >= user.arTokens ? 'var(--er-gray-50)' : 'var(--er-gray-100)',
+                    color: tokensToUse >= user.arTokens ? 'var(--er-gray-300)' : 'var(--er-slate-700)',
+                    borderRadius: 'var(--er-radius-sm)',
+                    border: '1px solid var(--er-gray-200)',
+                    cursor: tokensToUse >= user.arTokens ? 'not-allowed' : 'pointer',
+                  }}
                 >
-                  <Plus className="w-5 h-5" />
+                  <Plus className="w-4 h-4" />
                 </button>
               </div>
 
               {tokensToUse === 1 && requests.length > 1 && (
-                <div className="flex items-start gap-2 mt-3 p-3 bg-gold/10 rounded-lg">
+                <div
+                  className="flex items-start gap-2 mt-3 p-3"
+                  style={{ background: 'rgba(201,169,110,0.07)', borderRadius: 'var(--er-radius-md)', border: '1px solid rgba(201,169,110,0.18)' }}
+                >
                   <Info className="w-4 h-4 text-gold flex-shrink-0 mt-0.5" />
-                  <p className="text-xs text-navy-light">
-                    With 1 token, you can only win your highest-ranked available request. Your other requests serve as backups.
+                  <p style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.75rem', color: 'var(--er-gray-600)' }}>
+                    With this setting, you can only win your highest-ranked available request. Your other requests serve as backups.
                   </p>
                 </div>
               )}
             </div>
 
             {/* Stats */}
-            <div className="space-y-4 mb-6 pb-6 border-b border-slate-100">
-              <div className="flex justify-between">
-                <span className="text-slate-500">Total requests</span>
-                <span className="font-semibold text-navy">{requests.length}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Points allocated</span>
-                <span className="font-semibold text-gold">{pointsAllocated} / {totalPoints}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Max wins</span>
-                <span className="font-semibold text-navy">{tokensToUse}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Max possible wins</span>
-                <span className="font-semibold text-navy">{Math.min(tokensToUse, maxWins)}</span>
-              </div>
+            <div
+              className="space-y-3 mb-6 pb-6"
+              style={{ borderBottom: '1px solid var(--er-gray-100)' }}
+            >
+              {[
+                { label: 'Total requests', value: requests.length, valueColor: 'var(--er-slate-800)' },
+                { label: 'Points allocated', value: `${pointsAllocated} / ${totalPoints}`, valueColor: 'var(--color-gold-dark)' },
+              ].map(({ label, value, valueColor }) => (
+                <div key={label} className="flex justify-between items-baseline">
+                  <span style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.8125rem', color: 'var(--er-gray-500)' }}>{label}</span>
+                  <span className="tabular-nums" style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.875rem', fontWeight: 500, color: valueColor }}>{value}</span>
+                </div>
+              ))}
               {hasDuplicates && (
-                <div className="flex justify-between">
-                  <span className="text-slate-500">Duplicate destinations</span>
-                  <span className="font-semibold text-amber">{duplicateIds.size}</span>
+                <div className="flex justify-between items-baseline">
+                  <span style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.8125rem', color: 'var(--er-gray-500)' }}>Duplicate destinations</span>
+                  <span className="tabular-nums" style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.875rem', fontWeight: 500, color: 'var(--color-amber)' }}>{duplicateIds.size}</span>
                 </div>
               )}
             </div>
 
-            {/* RAS run date & acceptance deadline */}
-            <div className="mb-6 p-4 bg-slate-50 rounded-lg">
-              <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
-                <Clock className="w-4 h-4" />
-                <span>Lottery runs on</span>
+            {/* Lottery date */}
+            <div
+              className="mb-6 p-4"
+              style={{ background: 'var(--er-gray-50)', borderRadius: 'var(--er-radius-md)', border: '1px solid var(--er-gray-100)' }}
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <Clock className="w-3.5 h-3.5" style={{ color: 'var(--er-gray-400)' }} />
+                <span className="label-caps" style={{ color: 'var(--er-gray-400)' }}>Lottery runs on</span>
               </div>
-              <p className="font-semibold text-navy">{format(rasRunDate, 'EEEE, MMMM d, yyyy')}</p>
-              <p className="text-sm text-slate-500">at 12:00 PM EST</p>
-              <p className="text-xs text-slate-500 mt-2">
-                You’ll have 48 hours to accept or decline any wins.
+              <p style={{ fontFamily: 'var(--er-font-sans)', fontWeight: 500, fontSize: '0.9375rem', color: 'var(--er-slate-800)' }}>
+                {format(rasRunDate, 'EEEE, MMMM d, yyyy')}
+              </p>
+              <p style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.8125rem', color: 'var(--er-gray-500)' }}>at 12:00 PM EST</p>
+              <p style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.75rem', color: 'var(--er-gray-400)', marginTop: '6px' }}>
+                You'll have 48 hours to accept or decline any wins.
               </p>
             </div>
 
-            {/* Submit button */}
+            {/* Submit */}
             <button
               onClick={() => setIsConfirmOpen(true)}
-              className="w-full flex items-center justify-center gap-2 py-4 gold-gradient text-white rounded-xl font-medium transition-premium hover:opacity-90"
+              className="w-full flex items-center justify-center gap-2 transition-premium"
+              style={{
+                padding: '14px 16px',
+                background: 'linear-gradient(135deg, var(--color-gold-dark) 0%, var(--color-gold) 100%)',
+                color: '#fff',
+                borderRadius: 'var(--er-radius-xl)',
+                fontFamily: 'var(--er-font-sans)',
+                fontSize: '0.9375rem',
+                fontWeight: 500,
+                border: 'none',
+                cursor: 'pointer',
+              }}
             >
               <Send className="w-4 h-4" />
               Submit to Lottery
@@ -366,7 +542,8 @@ export function ReviewSubmit() {
       {/* Back button */}
       <button
         onClick={() => setView('allocate-points')}
-        className="mt-8 flex items-center gap-2 text-slate-500 hover:text-navy transition-colors"
+        className="mt-8 flex items-center gap-2 transition-colors"
+        style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.875rem', color: 'var(--er-gray-400)', background: 'none', border: 'none', cursor: 'pointer' }}
       >
         <ArrowLeft className="w-4 h-4" />
         Back to Allocate Points
@@ -374,45 +551,90 @@ export function ReviewSubmit() {
 
       {/* Confirmation modal */}
       {isConfirmOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-          <div className="bg-white rounded-2xl p-8 max-w-md w-full card-shadow">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.45)' }}>
+          <div
+            className="max-w-md w-full p-8"
+            style={{
+              background: 'var(--er-white)',
+              borderRadius: 'var(--er-radius-xl)',
+              boxShadow: 'var(--er-shadow-xl)',
+            }}
+          >
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 bg-gold/10 rounded-full flex items-center justify-center">
-                <AlertCircle className="w-6 h-6 text-gold" />
+              <div
+                className="w-10 h-10 flex items-center justify-center"
+                style={{ background: 'rgba(201,169,110,0.1)', borderRadius: 'var(--er-radius-sm)' }}
+              >
+                <AlertCircle className="w-5 h-5 text-gold" />
               </div>
-              <h3 className="font-serif text-xl font-semibold text-navy">Confirm Submission</h3>
+              <h3 style={{
+                fontFamily: 'var(--er-font-serif)',
+                fontWeight: 300,
+                fontSize: '1.375rem',
+                color: 'var(--er-slate-800)',
+                margin: 0,
+              }}>
+                Confirm Submission
+              </h3>
             </div>
-            <p className="text-slate-500 mb-4">
+            <p style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.875rem', color: 'var(--er-gray-500)', marginBottom: '1rem' }}>
               You're about to submit {requests.length} vacation request
               {requests.length > 1 ? 's' : ''} to the Q2 2025 lottery.
             </p>
-            <div className="p-3 bg-slate-50 rounded-lg mb-6">
-              <div className="flex justify-between text-sm mb-1">
-                <span className="text-slate-500">Max wins requested:</span>
-                <span className="font-semibold text-navy">{tokensToUse}</span>
+            <div
+              className="p-4 mb-6"
+              style={{ background: 'var(--er-gray-50)', borderRadius: 'var(--er-radius-md)', border: '1px solid var(--er-gray-100)' }}
+            >
+              <div className="flex justify-between mb-1.5">
+                <span style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.8125rem', color: 'var(--er-gray-500)' }}>Max wins requested:</span>
+                <span className="tabular-nums" style={{ fontFamily: 'var(--er-font-sans)', fontWeight: 500, color: 'var(--er-slate-800)' }}>{tokensToUse}</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-500">Possible wins:</span>
-                <span className="font-semibold text-gold">{Math.min(tokensToUse, maxWins)}</span>
+              <div className="flex justify-between">
+                <span style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.8125rem', color: 'var(--er-gray-500)' }}>Possible wins:</span>
+                <span className="tabular-nums" style={{ fontFamily: 'var(--er-font-sans)', fontWeight: 500, color: 'var(--color-gold-dark)' }}>{Math.min(tokensToUse, maxWins)}</span>
               </div>
             </div>
-            <p className="text-xs text-slate-400 mb-6">
+            <p style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.75rem', color: 'var(--er-gray-400)', marginBottom: '1.5rem' }}>
               You won't be able to modify your requests after submission.
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setIsConfirmOpen(false)}
                 disabled={isSubmitting}
-                className="flex-1 py-3 bg-slate-100 text-navy rounded-xl font-medium transition-premium hover:bg-slate-200 disabled:opacity-50"
+                className="flex-1 transition-premium"
+                style={{
+                  padding: '12px 16px',
+                  background: 'var(--er-gray-50)',
+                  border: '1px solid var(--er-gray-200)',
+                  color: 'var(--er-slate-700)',
+                  borderRadius: 'var(--er-radius-xl)',
+                  fontFamily: 'var(--er-font-sans)',
+                  fontSize: '0.875rem',
+                  fontWeight: 400,
+                  cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                  opacity: isSubmitting ? 0.5 : 1,
+                }}
               >
                 Cancel
               </button>
               <button
                 onClick={handleSubmit}
                 disabled={isSubmitting}
-                className="flex-1 py-3 gold-gradient text-white rounded-xl font-medium transition-premium hover:opacity-90 disabled:opacity-50"
+                className="flex-1 transition-premium"
+                style={{
+                  padding: '12px 16px',
+                  background: 'linear-gradient(135deg, var(--color-gold-dark) 0%, var(--color-gold) 100%)',
+                  color: '#fff',
+                  borderRadius: 'var(--er-radius-xl)',
+                  fontFamily: 'var(--er-font-sans)',
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                  border: 'none',
+                  cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                  opacity: isSubmitting ? 0.7 : 1,
+                }}
               >
-                {isSubmitting ? 'Submitting...' : 'Confirm'}
+                {isSubmitting ? 'Submitting…' : 'Confirm'}
               </button>
             </div>
           </div>

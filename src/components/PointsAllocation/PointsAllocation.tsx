@@ -23,11 +23,10 @@ import {
   getPointsAllocated,
   getPointsRemaining,
   hasDuplicateDestinations,
-  calculateMaxWins,
 } from '../../utils/helpers';
 
 export function PointsAllocation() {
-  const { state, reorderRequests, updateRequest, setView } = useRAS();
+  const { state, reorderRequests, updateRequest, setView, openAnnotationCallout } = useRAS();
   const { requests, user } = state;
 
   const [showTip, setShowTip] = useState(true);
@@ -141,16 +140,25 @@ export function PointsAllocation() {
   };
 
   const hasDuplicates = hasDuplicateDestinations(requests);
-  const maxWins = calculateMaxWins(user, requests);
   const isOverAllocated = remaining < 0;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <div className="max-w-4xl mx-auto px-6 py-10">
+      {/* Page header */}
       <div className="mb-8">
-        <h2 className="font-serif text-3xl font-semibold text-navy">Allocate Your Points</h2>
-        <p className="text-slate-500 mt-2">
-          Distribute your points across requests to signal priority. More points = better odds. You
-          can use 0 on any request to “try your luck.”
+        <h2 style={{
+          fontFamily: 'var(--er-font-serif)',
+          fontWeight: 300,
+          fontSize: '2rem',
+          letterSpacing: '-0.02em',
+          color: 'var(--er-slate-800)',
+          margin: 0,
+          lineHeight: 1.1,
+        }}>
+          Allocate Your Points
+        </h2>
+        <p className="mt-2" style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.875rem', color: 'var(--er-gray-500)' }}>
+          Distribute points across requests to signal priority. More points = better odds. Use 0 to try your luck.
         </p>
       </div>
 
@@ -158,82 +166,89 @@ export function PointsAllocation() {
         <PointsBank user={user} requests={requests} />
       </div>
 
+      {/* Strategy tip */}
       {showTip && (
-        <div className="mb-6 p-4 bg-gold/10 rounded-xl flex items-start gap-3">
-          <Info className="w-5 h-5 text-gold flex-shrink-0 mt-0.5" />
-          <div className="flex-1">
-            <p className="text-sm text-navy-light">
-              <strong className="text-navy">Strategy:</strong> Putting more points on a request
-              improves its odds, but spreading too thin lowers odds everywhere. Super-peak
-              destinations benefit most from heavier allocation. Flexible dates act as a multiplier.
-            </p>
-          </div>
+        <div
+          className="mb-6 flex items-start gap-3 px-4 py-3.5"
+          style={{
+            background: 'rgba(201,169,110,0.07)',
+            border: '1px solid rgba(201,169,110,0.2)',
+            borderRadius: 'var(--er-radius-xl)',
+          }}
+        >
+          <Info className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: 'var(--color-gold)' }} />
+          <p style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.8125rem', color: 'var(--er-gray-700)', flex: 1 }}>
+            <span style={{ fontWeight: 500 }}>Strategy:</span> Heavier allocation improves odds on that request — but spreading too thin lowers all odds. Super-peak destinations benefit most. Flexible dates act as a multiplier.
+          </p>
           <button
             onClick={() => setShowTip(false)}
-            className="text-sm text-slate-400 hover:text-slate-600 transition-colors"
+            style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.75rem', color: 'var(--er-gray-400)' }}
+            className="transition-colors hover:text-gray-600"
           >
             Dismiss
           </button>
         </div>
       )}
 
-      {/* Quick allocation tools */}
-      <div className="mb-6 p-4 bg-white rounded-xl card-shadow">
-        <p className="text-sm font-medium text-slate-600 mb-3">Quick allocation</p>
+      {/* Quick allocation */}
+      <div
+        className="mb-6 px-4 py-4"
+        style={{
+          background: 'var(--er-white)',
+          border: '1px solid var(--er-gray-200)',
+          borderRadius: 'var(--er-radius-xl)',
+          boxShadow: 'var(--er-shadow-xs)',
+        }}
+      >
+        <p className="label-caps mb-3" style={{ color: 'var(--er-gray-400)' }}>Quick allocation</p>
         <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={handlePrioritizeTop3}
-            className="px-3 py-2 bg-slate-100 text-navy text-sm font-medium rounded-lg hover:bg-slate-200 transition-colors"
-          >
-            Prioritize Top 3
-          </button>
-          <button
-            type="button"
-            onClick={handleEvenSplit}
-            className="px-3 py-2 bg-slate-100 text-navy text-sm font-medium rounded-lg hover:bg-slate-200 transition-colors"
-          >
-            Even Split
-          </button>
-          <button
-            type="button"
-            onClick={handleAllIn}
-            className="px-3 py-2 bg-slate-100 text-navy text-sm font-medium rounded-lg hover:bg-slate-200 transition-colors"
-          >
-            All-in (#1)
-          </button>
-          <button
-            type="button"
-            onClick={handleSafeSpread}
-            className="px-3 py-2 bg-slate-100 text-navy text-sm font-medium rounded-lg hover:bg-slate-200 transition-colors"
-          >
-            Safe Spread
-          </button>
+          {[
+            { label: 'Prioritize Top 3', fn: handlePrioritizeTop3 },
+            { label: 'Even Split', fn: handleEvenSplit },
+            { label: 'All-in (#1)', fn: handleAllIn },
+            { label: 'Safe Spread', fn: handleSafeSpread },
+          ].map(({ label, fn }) => (
+            <button
+              key={label}
+              type="button"
+              onClick={fn}
+              style={{
+                fontFamily: 'var(--er-font-sans)',
+                fontSize: '0.8125rem',
+                fontWeight: 400,
+                color: 'var(--er-gray-700)',
+                background: 'var(--er-gray-50)',
+                border: '1px solid var(--er-gray-200)',
+                borderRadius: 'var(--er-radius-sm)',
+                padding: '6px 12px',
+                cursor: 'pointer',
+                transition: 'background 0.15s',
+              }}
+            >
+              {label}
+            </button>
+          ))}
         </div>
       </div>
 
+      {/* Duplicate warning */}
       {hasDuplicates && (
-        <div className="mb-6 p-4 bg-amber/10 rounded-xl flex items-start gap-3">
-          <Info className="w-5 h-5 text-amber flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-navy-light">
-            You have multiple requests for the same destination. Use “Limit to 1 win” on a request
-            if you only want one win at that destination.
+        <div
+          className="mb-6 flex items-start gap-3 px-4 py-3.5"
+          style={{
+            background: 'rgba(217,119,6,0.06)',
+            border: '1px solid rgba(217,119,6,0.18)',
+            borderRadius: 'var(--er-radius-xl)',
+          }}
+        >
+          <Info className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: 'var(--color-amber)' }} />
+          <p style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.8125rem', color: 'var(--er-gray-700)' }}>
+            You have multiple requests for the same destination. Use "Limit to 1 win" if you only want one win there.
           </p>
         </div>
       )}
 
-      <div className="mb-6 p-4 bg-white rounded-xl card-shadow flex items-center justify-between">
-        <div>
-          <p className="text-sm text-slate-500">Maximum possible wins this quarter</p>
-          <p className="text-2xl font-semibold text-navy tabular-nums">{maxWins}</p>
-        </div>
-        {user.memberType === 'ultra' && (
-          <div className="px-3 py-1 gold-gradient text-white text-sm font-medium rounded-full">
-            Ultra: Unlimited
-          </div>
-        )}
-      </div>
-
+      {/* Cards */}
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={requests.map((r) => r.id)} strategy={verticalListSortingStrategy}>
           <div className="space-y-3">
@@ -260,29 +275,63 @@ export function PointsAllocation() {
         </SortableContext>
       </DndContext>
 
+      {/* Over-allocated warning */}
       {isOverAllocated && (
-        <div className="mt-6 p-4 bg-coral/10 rounded-xl text-coral font-medium text-sm">
-          You’ve allocated {allocated} points but only have {totalPoints}. Reduce points on one or
-          more requests before continuing.
+        <div
+          className="mt-6 px-4 py-3.5"
+          style={{
+            background: 'rgba(206,84,87,0.06)',
+            border: '1px solid rgba(206,84,87,0.18)',
+            borderRadius: 'var(--er-radius-xl)',
+            fontFamily: 'var(--er-font-sans)',
+            fontSize: '0.8125rem',
+            color: 'var(--color-coral)',
+            fontWeight: 500,
+          }}
+        >
+          You've allocated {allocated} points but only have {totalPoints}. Reduce points on one or more requests before continuing.
         </div>
       )}
 
-      <div className="flex gap-4 mt-8">
+      {/* Nav buttons */}
+      <div className="flex gap-4 mt-10">
         <button
           onClick={() => setView('browse-or-search')}
-          className="flex-1 flex items-center justify-center gap-2 py-4 bg-white border border-slate-200 text-navy rounded-xl font-medium transition-premium hover:bg-slate-50"
+          className="flex-1 flex items-center justify-center gap-2 transition-premium hover:opacity-80"
+          style={{
+            padding: '14px 16px',
+            background: 'var(--er-white)',
+            border: '1px solid var(--er-gray-200)',
+            borderRadius: 'var(--er-radius-xl)',
+            fontFamily: 'var(--er-font-sans)',
+            fontSize: '0.875rem',
+            fontWeight: 400,
+            color: 'var(--er-slate-700)',
+          }}
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Requests
         </button>
         <button
-          onClick={() => setView('review')}
+          onClick={() => {
+            setView('review');
+            openAnnotationCallout('member-continue-review');
+          }}
           disabled={isOverAllocated}
-          className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-xl font-medium transition-premium ${
-            isOverAllocated
-              ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-              : 'gold-gradient text-white hover:opacity-90'
-          }`}
+          className="flex-1 flex items-center justify-center gap-2 transition-premium"
+          style={{
+            padding: '14px 16px',
+            background: isOverAllocated
+              ? 'var(--er-gray-100)'
+              : 'linear-gradient(135deg, var(--color-gold-dark) 0%, var(--color-gold) 100%)',
+            color: isOverAllocated ? 'var(--er-gray-400)' : '#fff',
+            borderRadius: 'var(--er-radius-xl)',
+            fontFamily: 'var(--er-font-sans)',
+            fontSize: '0.875rem',
+            fontWeight: 500,
+            cursor: isOverAllocated ? 'not-allowed' : 'pointer',
+            opacity: isOverAllocated ? 0.7 : 1,
+          }}
         >
           Review & Submit
           <ArrowRight className="w-4 h-4" />

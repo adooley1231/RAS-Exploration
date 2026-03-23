@@ -23,6 +23,8 @@ interface DateRangePickerProps {
   suggestedStartDay?: number;
   /** Destination name for hint text. */
   destinationName?: string;
+  /** Override the default "Stays must be N-N nights" hint. Pass null to hide it. */
+  hintText?: string | null;
 }
 
 export function DateRangePicker({
@@ -35,6 +37,7 @@ export function DateRangePicker({
   maxNights = 14,
   suggestedStartDay,
   destinationName,
+  hintText,
 }: DateRangePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [range, setRange] = useState<DateRange>({
@@ -75,27 +78,12 @@ export function DateRangePicker({
     }
 
     setRange({ from: newRange.from, to: newRange.to });
-
-    // If both dates are selected, validate and close
-    if (newRange.from && newRange.to) {
-      const nights = differenceInDays(newRange.to, newRange.from);
-      if (nights >= minNights && nights <= maxNights) {
-        onChange(newRange.from, newRange.to);
-        setIsOpen(false);
-      }
-    }
+    // Calendar stays open — user confirms via the "Confirm dates" button below.
   };
 
   const isDateDisabled = (date: Date) => {
     if (isBefore(date, effectiveMinDate) || isBefore(effectiveMaxDate, date)) {
       return true;
-    }
-    // If we have a from date, disable dates that would create invalid ranges
-    if (range.from && !range.to) {
-      const nights = differenceInDays(date, range.from);
-      if (nights > 0 && (nights < minNights || nights > maxNights)) {
-        return true;
-      }
     }
     return false;
   };
@@ -161,9 +149,11 @@ export function DateRangePicker({
 
       {/* Stay length hint */}
       <div className="mt-1.5 space-y-1">
-        <p className="text-xs text-slate-500">
-          Stays must be {minNights}-{maxNights} nights
-        </p>
+        {hintText !== null && (
+          <p className="text-xs text-slate-500">
+            {hintText ?? `Stays must be ${minNights}–${maxNights} nights`}
+          </p>
+        )}
         {suggestedDayName && (
           <p className="text-xs text-gold flex items-center gap-1">
             <Sparkles className="w-3 h-3" />
@@ -221,8 +211,35 @@ export function DateRangePicker({
             }}
           />
 
+          {/* Confirm button — always visible so users aren't forced to use quick pills */}
+          <div className="mt-4 flex items-center justify-between gap-3">
+            {range.from && !range.to && (
+              <p className="text-xs text-slate-400">Now select a check-out date</p>
+            )}
+            {(!range.from || range.to) && <span />}
+            <button
+              type="button"
+              onClick={() => {
+                if (range.from && range.to) {
+                  onChange(range.from, range.to);
+                  setIsOpen(false);
+                }
+              }}
+              disabled={!range.from || !range.to}
+              className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors flex-shrink-0 ${
+                range.from && range.to
+                  ? 'bg-navy text-white hover:bg-navy-light'
+                  : 'bg-slate-100 text-slate-300 cursor-not-allowed'
+              }`}
+            >
+              {range.from && range.to
+                ? `Confirm — ${differenceInDays(range.to, range.from)} nights`
+                : 'Confirm dates'}
+            </button>
+          </div>
+
           {/* Quick selection */}
-          <div className="mt-4 pt-4 border-t border-slate-100 space-y-3">
+          <div className="mt-3 pt-3 border-t border-slate-100 space-y-3">
             {nextSuggestedDate && suggestedDayName && (
               <div>
                 <p className="text-xs font-medium text-slate-500 mb-2">

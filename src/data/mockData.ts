@@ -1,4 +1,4 @@
-import type { Destination, User, RASResult, PreviousWin, Unit, DemandTier } from '../types';
+import type { Destination, User, RASResult, PreviousWin, Unit, DemandTier, VacationRequest, AmbassadorProfile, HistoricalRelease } from '../types';
 import { addDays, subQuarters } from 'date-fns';
 
 // Unit image URLs by type
@@ -383,6 +383,603 @@ export const generateMockResults = (scenario: string): RASResult[] => {
     default:
       return [];
   }
+};
+
+// ─── Ambassador mock data ──────────────────────────────────────────────────
+
+const ambBase = new Date();
+const ambDeadline = addDays(ambBase, 2);
+
+// Member 1: Alice Thornton — Regular — results available (self-submitted, won Aspen)
+const aliceUser: User = {
+  id: 'amb-member-1',
+  name: 'Alice Thornton',
+  memberType: 'regular',
+  vacationDays: 20,
+  arTokens: 3,
+  maxArTokens: 5,
+  previousWins: [{ destinationId: 'dest-7', date: subQuarters(ambBase, 3), quarterAgo: 3 }],
+  isFirstTime: false,
+};
+
+const aliceRequests: VacationRequest[] = [
+  {
+    id: 'alice-req-1',
+    destination: destinations[1], // Aspen (super-peak)
+    checkInDate: addDays(ambBase, 35),
+    checkOutDate: addDays(ambBase, 42),
+    selectedUnit: destinations[1].units[1],
+    flexibleDates: false,
+    mustIncludeWeekend: true,
+    pointsAllocated: 10,
+    rank: 1,
+    submittedBy: 'member',
+  },
+  {
+    id: 'alice-req-2',
+    destination: destinations[0], // Maui (peak)
+    checkInDate: addDays(ambBase, 55),
+    checkOutDate: addDays(ambBase, 62),
+    selectedUnit: null,
+    flexibleDates: true,
+    mustIncludeWeekend: false,
+    pointsAllocated: 6,
+    rank: 2,
+    submittedBy: 'member',
+  },
+  {
+    id: 'alice-req-3',
+    destination: destinations[4], // Lake Tahoe (shoulder)
+    checkInDate: addDays(ambBase, 70),
+    checkOutDate: addDays(ambBase, 75),
+    selectedUnit: null,
+    flexibleDates: false,
+    mustIncludeWeekend: false,
+    pointsAllocated: 4,
+    rank: 3,
+    submittedBy: 'member',
+  },
+];
+
+const aliceResults: RASResult[] = [
+  {
+    id: 'alice-result-1',
+    requestId: 'alice-req-1',
+    destination: destinations[1], // Aspen
+    unit: destinations[1].units[1],
+    status: 'won',
+    matchedDates: { checkIn: addDays(ambBase, 35), checkOut: addDays(ambBase, 42) },
+    originalCheckIn: addDays(ambBase, 35),
+    originalCheckOut: addDays(ambBase, 42),
+    originalRank: 1,
+    pointsInvested: 10,
+    percentOfBudget: 50,
+    acceptStatus: 'pending',
+    declineDeadline: ambDeadline,
+    arTokensUsed: 1,
+  },
+  {
+    id: 'alice-result-2',
+    requestId: 'alice-req-2',
+    destination: destinations[0], // Maui
+    status: 'lost',
+    originalCheckIn: addDays(ambBase, 55),
+    originalCheckOut: addDays(ambBase, 62),
+    originalRank: 2,
+    pointsInvested: 6,
+    percentOfBudget: 30,
+    declineDeadline: ambDeadline,
+    arTokensUsed: 0,
+  },
+  {
+    id: 'alice-result-3',
+    requestId: 'alice-req-3',
+    destination: destinations[4], // Lake Tahoe
+    status: 'lost',
+    originalCheckIn: addDays(ambBase, 70),
+    originalCheckOut: addDays(ambBase, 75),
+    originalRank: 3,
+    pointsInvested: 4,
+    percentOfBudget: 20,
+    declineDeadline: ambDeadline,
+    arTokensUsed: 0,
+  },
+];
+
+// Member 2: Marcus Webb — Ultra — submitted (self-submitted, awaiting results)
+const marcusUser: User = {
+  id: 'amb-member-2',
+  name: 'Marcus Webb',
+  memberType: 'ultra',
+  vacationDays: 20,
+  arTokens: 8,
+  maxArTokens: 10,
+  previousWins: [
+    { destinationId: 'dest-2', date: subQuarters(ambBase, 1), quarterAgo: 1 },
+    { destinationId: 'dest-8', date: subQuarters(ambBase, 4), quarterAgo: 4 },
+  ],
+  isFirstTime: false,
+};
+
+const marcusRequests: VacationRequest[] = [
+  {
+    id: 'marcus-req-1',
+    destination: destinations[7], // Park City (super-peak)
+    checkInDate: addDays(ambBase, 40),
+    checkOutDate: addDays(ambBase, 47),
+    selectedUnit: destinations[7].units[2],
+    flexibleDates: false,
+    mustIncludeWeekend: true,
+    pointsAllocated: 9,
+    rank: 1,
+    submittedBy: 'member',
+  },
+  {
+    id: 'marcus-req-2',
+    destination: destinations[1], // Aspen (super-peak)
+    checkInDate: addDays(ambBase, 50),
+    checkOutDate: addDays(ambBase, 57),
+    selectedUnit: null,
+    flexibleDates: true,
+    mustIncludeWeekend: false,
+    pointsAllocated: 7,
+    rank: 2,
+    submittedBy: 'member',
+  },
+  {
+    id: 'marcus-req-3',
+    destination: destinations[3], // Miami (peak)
+    checkInDate: addDays(ambBase, 62),
+    checkOutDate: addDays(ambBase, 69),
+    selectedUnit: null,
+    flexibleDates: false,
+    mustIncludeWeekend: false,
+    pointsAllocated: 5,
+    rank: 3,
+    submittedBy: 'member',
+  },
+  {
+    id: 'marcus-req-4',
+    destination: destinations[9], // San Diego (peak)
+    checkInDate: addDays(ambBase, 80),
+    checkOutDate: addDays(ambBase, 87),
+    selectedUnit: null,
+    flexibleDates: true,
+    mustIncludeWeekend: false,
+    pointsAllocated: 3,
+    rank: 4,
+    submittedBy: 'member',
+  },
+];
+
+// Member 3: Caroline Park — Regular — in-progress (mix of member + ambassador)
+const carolineUser: User = {
+  id: 'amb-member-3',
+  name: 'Caroline Park',
+  memberType: 'regular',
+  vacationDays: 20,
+  arTokens: 4,
+  maxArTokens: 5,
+  previousWins: [],
+  isFirstTime: false,
+};
+
+const carolineRequests: VacationRequest[] = [
+  {
+    id: 'caroline-req-1',
+    destination: destinations[6], // Cape Cod (peak)
+    checkInDate: addDays(ambBase, 45),
+    checkOutDate: addDays(ambBase, 52),
+    selectedUnit: null,
+    flexibleDates: false,
+    mustIncludeWeekend: true,
+    pointsAllocated: 8,
+    rank: 1,
+    submittedBy: 'member',
+  },
+  {
+    id: 'caroline-req-2',
+    destination: destinations[2], // Napa (shoulder)
+    checkInDate: addDays(ambBase, 58),
+    checkOutDate: addDays(ambBase, 63),
+    selectedUnit: null,
+    flexibleDates: true,
+    mustIncludeWeekend: false,
+    pointsAllocated: 7,
+    rank: 2,
+    submittedBy: 'ambassador',
+  },
+  {
+    id: 'caroline-req-3',
+    destination: destinations[8], // Charleston (shoulder)
+    checkInDate: addDays(ambBase, 70),
+    checkOutDate: addDays(ambBase, 75),
+    selectedUnit: null,
+    flexibleDates: false,
+    mustIncludeWeekend: false,
+    pointsAllocated: 5,
+    rank: 3,
+    submittedBy: 'ambassador',
+  },
+];
+
+// Member 4: Derek Mills — Regular — submitted (all ambassador-submitted)
+const derekUser: User = {
+  id: 'amb-member-4',
+  name: 'Derek Mills',
+  memberType: 'regular',
+  vacationDays: 20,
+  arTokens: 3,
+  maxArTokens: 5,
+  previousWins: [{ destinationId: 'dest-5', date: subQuarters(ambBase, 2), quarterAgo: 2 }],
+  isFirstTime: false,
+};
+
+const derekRequests: VacationRequest[] = [
+  {
+    id: 'derek-req-1',
+    destination: destinations[0], // Maui (peak)
+    checkInDate: addDays(ambBase, 38),
+    checkOutDate: addDays(ambBase, 45),
+    selectedUnit: destinations[0].units[0],
+    flexibleDates: false,
+    mustIncludeWeekend: false,
+    pointsAllocated: 8,
+    rank: 1,
+    submittedBy: 'ambassador',
+  },
+  {
+    id: 'derek-req-2',
+    destination: destinations[5], // Scottsdale (off-season)
+    checkInDate: addDays(ambBase, 52),
+    checkOutDate: addDays(ambBase, 57),
+    selectedUnit: null,
+    flexibleDates: true,
+    mustIncludeWeekend: false,
+    pointsAllocated: 6,
+    rank: 2,
+    submittedBy: 'ambassador',
+  },
+  {
+    id: 'derek-req-3',
+    destination: destinations[9], // San Diego (peak)
+    checkInDate: addDays(ambBase, 65),
+    checkOutDate: addDays(ambBase, 72),
+    selectedUnit: null,
+    flexibleDates: false,
+    mustIncludeWeekend: false,
+    pointsAllocated: 4,
+    rank: 3,
+    submittedBy: 'ambassador',
+  },
+  {
+    id: 'derek-req-4',
+    destination: destinations[8], // Charleston (shoulder)
+    checkInDate: addDays(ambBase, 80),
+    checkOutDate: addDays(ambBase, 85),
+    selectedUnit: null,
+    flexibleDates: false,
+    mustIncludeWeekend: false,
+    pointsAllocated: 2,
+    rank: 4,
+    submittedBy: 'ambassador',
+  },
+];
+
+// Member 5: Elena Kovacs — Regular — not started
+const elenaUser: User = {
+  id: 'amb-member-5',
+  name: 'Elena Kovacs',
+  memberType: 'regular',
+  vacationDays: 20,
+  arTokens: 5,
+  maxArTokens: 5,
+  previousWins: [],
+  isFirstTime: true,
+};
+
+// Member 6: James Whitfield — Ultra — not started
+const jamesUser: User = {
+  id: 'amb-member-6',
+  name: 'James Whitfield',
+  memberType: 'ultra',
+  vacationDays: 20,
+  arTokens: 6,
+  maxArTokens: 10,
+  previousWins: [{ destinationId: 'dest-1', date: subQuarters(ambBase, 2), quarterAgo: 2 }],
+  isFirstTime: false,
+};
+
+// ─── Historical release data ──────────────────────────────────────────────────
+
+const aliceHistory: HistoricalRelease[] = [
+  {
+    quarter: 'Q1 2025',
+    releaseId: 'q1-2025',
+    participated: true,
+    submittedBy: 'member',
+    wins: 1,
+    totalPoints: 18,
+    pointsBudget: 20,
+    requests: [
+      { destinationId: 'dest-2', destinationName: 'Aspen Mountain Lodge', region: 'Colorado', demandTier: 'super-peak', rank: 1, pointsAllocated: 10, status: 'won', submittedBy: 'member' },
+      { destinationId: 'dest-1', destinationName: 'Maui Oceanfront Villa', region: 'Hawaii', demandTier: 'peak', rank: 2, pointsAllocated: 5, status: 'lost', submittedBy: 'member' },
+      { destinationId: 'dest-5', destinationName: 'Lake Tahoe Cabin', region: 'California/Nevada', demandTier: 'shoulder', rank: 3, pointsAllocated: 3, status: 'lost', submittedBy: 'member' },
+    ],
+  },
+  {
+    quarter: 'Q4 2024',
+    releaseId: 'q4-2024',
+    participated: true,
+    submittedBy: 'member',
+    wins: 0,
+    totalPoints: 15,
+    pointsBudget: 20,
+    requests: [
+      { destinationId: 'dest-7', destinationName: 'Cape Cod Beach House', region: 'Massachusetts', demandTier: 'peak', rank: 1, pointsAllocated: 8, status: 'lost', submittedBy: 'member' },
+      { destinationId: 'dest-4', destinationName: 'Miami South Beach Penthouse', region: 'Florida', demandTier: 'peak', rank: 2, pointsAllocated: 7, status: 'lost', submittedBy: 'member' },
+    ],
+  },
+  {
+    quarter: 'Q3 2024',
+    releaseId: 'q3-2024',
+    participated: true,
+    submittedBy: 'ambassador',
+    wins: 1,
+    totalPoints: 20,
+    pointsBudget: 20,
+    requests: [
+      { destinationId: 'dest-8', destinationName: 'Park City Ski Chalet', region: 'Utah', demandTier: 'super-peak', rank: 1, pointsAllocated: 12, status: 'lost', submittedBy: 'ambassador' },
+      { destinationId: 'dest-9', destinationName: 'Charleston Historic Manor', region: 'South Carolina', demandTier: 'shoulder', rank: 2, pointsAllocated: 5, status: 'won', submittedBy: 'ambassador' },
+      { destinationId: 'dest-6', destinationName: 'Scottsdale Desert Oasis', region: 'Arizona', demandTier: 'off-season', rank: 3, pointsAllocated: 3, status: 'lost', submittedBy: 'ambassador' },
+    ],
+  },
+];
+
+const marcusHistory: HistoricalRelease[] = [
+  {
+    quarter: 'Q1 2025',
+    releaseId: 'q1-2025',
+    participated: true,
+    submittedBy: 'member',
+    wins: 2,
+    totalPoints: 24,
+    pointsBudget: 24,
+    requests: [
+      { destinationId: 'dest-8', destinationName: 'Park City Ski Chalet', region: 'Utah', demandTier: 'super-peak', rank: 1, pointsAllocated: 9, status: 'won', submittedBy: 'member' },
+      { destinationId: 'dest-2', destinationName: 'Aspen Mountain Lodge', region: 'Colorado', demandTier: 'super-peak', rank: 2, pointsAllocated: 7, status: 'lost', submittedBy: 'member' },
+      { destinationId: 'dest-1', destinationName: 'Maui Oceanfront Villa', region: 'Hawaii', demandTier: 'peak', rank: 3, pointsAllocated: 5, status: 'won', submittedBy: 'member' },
+      { destinationId: 'dest-10', destinationName: 'San Diego Coastal Retreat', region: 'California', demandTier: 'peak', rank: 4, pointsAllocated: 3, status: 'lost', submittedBy: 'member' },
+    ],
+  },
+  {
+    quarter: 'Q4 2024',
+    releaseId: 'q4-2024',
+    participated: true,
+    submittedBy: 'member',
+    wins: 1,
+    totalPoints: 22,
+    pointsBudget: 24,
+    requests: [
+      { destinationId: 'dest-2', destinationName: 'Aspen Mountain Lodge', region: 'Colorado', demandTier: 'super-peak', rank: 1, pointsAllocated: 12, status: 'won', submittedBy: 'member' },
+      { destinationId: 'dest-4', destinationName: 'Miami South Beach Penthouse', region: 'Florida', demandTier: 'peak', rank: 2, pointsAllocated: 7, status: 'lost', submittedBy: 'member' },
+      { destinationId: 'dest-3', destinationName: 'Napa Valley Estate', region: 'California', demandTier: 'shoulder', rank: 3, pointsAllocated: 3, status: 'lost', submittedBy: 'member' },
+    ],
+  },
+  {
+    quarter: 'Q3 2024',
+    releaseId: 'q3-2024',
+    participated: true,
+    submittedBy: 'member',
+    wins: 1,
+    totalPoints: 18,
+    pointsBudget: 24,
+    requests: [
+      { destinationId: 'dest-8', destinationName: 'Park City Ski Chalet', region: 'Utah', demandTier: 'super-peak', rank: 1, pointsAllocated: 10, status: 'won', submittedBy: 'member' },
+      { destinationId: 'dest-7', destinationName: 'Cape Cod Beach House', region: 'Massachusetts', demandTier: 'peak', rank: 2, pointsAllocated: 8, status: 'lost', submittedBy: 'member' },
+    ],
+  },
+];
+
+const carolineHistory: HistoricalRelease[] = [
+  {
+    quarter: 'Q1 2025',
+    releaseId: 'q1-2025',
+    participated: true,
+    submittedBy: 'mixed',
+    wins: 0,
+    totalPoints: 16,
+    pointsBudget: 20,
+    requests: [
+      { destinationId: 'dest-7', destinationName: 'Cape Cod Beach House', region: 'Massachusetts', demandTier: 'peak', rank: 1, pointsAllocated: 9, status: 'lost', submittedBy: 'member' },
+      { destinationId: 'dest-5', destinationName: 'Lake Tahoe Cabin', region: 'California/Nevada', demandTier: 'shoulder', rank: 2, pointsAllocated: 7, status: 'lost', submittedBy: 'ambassador' },
+    ],
+  },
+  {
+    quarter: 'Q4 2024',
+    releaseId: 'q4-2024',
+    participated: false,
+    wins: 0,
+    totalPoints: 0,
+    pointsBudget: 20,
+    requests: [],
+  },
+  {
+    quarter: 'Q3 2024',
+    releaseId: 'q3-2024',
+    participated: true,
+    submittedBy: 'ambassador',
+    wins: 1,
+    totalPoints: 20,
+    pointsBudget: 20,
+    requests: [
+      { destinationId: 'dest-3', destinationName: 'Napa Valley Estate', region: 'California', demandTier: 'shoulder', rank: 1, pointsAllocated: 10, status: 'won', submittedBy: 'ambassador' },
+      { destinationId: 'dest-9', destinationName: 'Charleston Historic Manor', region: 'South Carolina', demandTier: 'shoulder', rank: 2, pointsAllocated: 6, status: 'lost', submittedBy: 'ambassador' },
+      { destinationId: 'dest-6', destinationName: 'Scottsdale Desert Oasis', region: 'Arizona', demandTier: 'off-season', rank: 3, pointsAllocated: 4, status: 'lost', submittedBy: 'ambassador' },
+    ],
+  },
+];
+
+const derekHistory: HistoricalRelease[] = [
+  {
+    quarter: 'Q1 2025',
+    releaseId: 'q1-2025',
+    participated: true,
+    submittedBy: 'ambassador',
+    wins: 1,
+    totalPoints: 19,
+    pointsBudget: 20,
+    requests: [
+      { destinationId: 'dest-1', destinationName: 'Maui Oceanfront Villa', region: 'Hawaii', demandTier: 'peak', rank: 1, pointsAllocated: 10, status: 'won', submittedBy: 'ambassador' },
+      { destinationId: 'dest-10', destinationName: 'San Diego Coastal Retreat', region: 'California', demandTier: 'peak', rank: 2, pointsAllocated: 6, status: 'lost', submittedBy: 'ambassador' },
+      { destinationId: 'dest-6', destinationName: 'Scottsdale Desert Oasis', region: 'Arizona', demandTier: 'off-season', rank: 3, pointsAllocated: 3, status: 'lost', submittedBy: 'ambassador' },
+    ],
+  },
+  {
+    quarter: 'Q4 2024',
+    releaseId: 'q4-2024',
+    participated: true,
+    submittedBy: 'ambassador',
+    wins: 0,
+    totalPoints: 20,
+    pointsBudget: 20,
+    requests: [
+      { destinationId: 'dest-2', destinationName: 'Aspen Mountain Lodge', region: 'Colorado', demandTier: 'super-peak', rank: 1, pointsAllocated: 12, status: 'lost', submittedBy: 'ambassador' },
+      { destinationId: 'dest-5', destinationName: 'Lake Tahoe Cabin', region: 'California/Nevada', demandTier: 'shoulder', rank: 2, pointsAllocated: 8, status: 'lost', submittedBy: 'ambassador' },
+    ],
+  },
+  {
+    quarter: 'Q3 2024',
+    releaseId: 'q3-2024',
+    participated: false,
+    wins: 0,
+    totalPoints: 0,
+    pointsBudget: 20,
+    requests: [],
+  },
+];
+
+const elenaHistory: HistoricalRelease[] = [
+  {
+    quarter: 'Q1 2025',
+    releaseId: 'q1-2025',
+    participated: false,
+    wins: 0,
+    totalPoints: 0,
+    pointsBudget: 20,
+    requests: [],
+  },
+  {
+    quarter: 'Q4 2024',
+    releaseId: 'q4-2024',
+    participated: false,
+    wins: 0,
+    totalPoints: 0,
+    pointsBudget: 20,
+    requests: [],
+  },
+  {
+    quarter: 'Q3 2024',
+    releaseId: 'q3-2024',
+    participated: false,
+    wins: 0,
+    totalPoints: 0,
+    pointsBudget: 20,
+    requests: [],
+  },
+];
+
+const jamesHistory: HistoricalRelease[] = [
+  {
+    quarter: 'Q1 2025',
+    releaseId: 'q1-2025',
+    participated: false,
+    wins: 0,
+    totalPoints: 0,
+    pointsBudget: 24,
+    requests: [],
+  },
+  {
+    quarter: 'Q4 2024',
+    releaseId: 'q4-2024',
+    participated: true,
+    submittedBy: 'member',
+    wins: 1,
+    totalPoints: 20,
+    pointsBudget: 24,
+    requests: [
+      { destinationId: 'dest-1', destinationName: 'Maui Oceanfront Villa', region: 'Hawaii', demandTier: 'peak', rank: 1, pointsAllocated: 12, status: 'won', submittedBy: 'member' },
+      { destinationId: 'dest-9', destinationName: 'Charleston Historic Manor', region: 'South Carolina', demandTier: 'shoulder', rank: 2, pointsAllocated: 8, status: 'lost', submittedBy: 'member' },
+    ],
+  },
+  {
+    quarter: 'Q3 2024',
+    releaseId: 'q3-2024',
+    participated: false,
+    wins: 0,
+    totalPoints: 0,
+    pointsBudget: 24,
+    requests: [],
+  },
+];
+
+export const ambassadorProfile: AmbassadorProfile = {
+  id: 'ambassador-1',
+  name: 'Jessica Martinez',
+  members: [
+    {
+      user: aliceUser,
+      requests: aliceRequests,
+      results: aliceResults,
+      rasStatus: 'results-available',
+      pointsBudget: 20,
+      lastActivity: addDays(ambBase, -1),
+      history: aliceHistory,
+    },
+    {
+      user: marcusUser,
+      requests: marcusRequests,
+      results: [],
+      rasStatus: 'submitted',
+      pointsBudget: 24,
+      lastActivity: addDays(ambBase, -2),
+      history: marcusHistory,
+    },
+    {
+      user: carolineUser,
+      requests: carolineRequests,
+      results: [],
+      rasStatus: 'in-progress',
+      pointsBudget: 20,
+      lastActivity: addDays(ambBase, -3),
+      history: carolineHistory,
+    },
+    {
+      user: derekUser,
+      requests: derekRequests,
+      results: [],
+      rasStatus: 'submitted',
+      pointsBudget: 20,
+      lastActivity: addDays(ambBase, -4),
+      history: derekHistory,
+    },
+    {
+      user: elenaUser,
+      requests: [],
+      results: [],
+      rasStatus: 'not-started',
+      pointsBudget: 20,
+      history: elenaHistory,
+    },
+    {
+      user: jamesUser,
+      requests: [],
+      results: [],
+      rasStatus: 'not-started',
+      pointsBudget: 24,
+      history: jamesHistory,
+    },
+  ],
 };
 
 // RAS run date (next quarter)
