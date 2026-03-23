@@ -25,6 +25,10 @@ interface DateRangePickerProps {
   destinationName?: string;
   /** Override the default "Stays must be N-N nights" hint. Pass null to hide it. */
   hintText?: string | null;
+  /** Compact inline mode — hides label, uses transparent trigger, single month, no quick-select pills. */
+  compact?: boolean;
+  /** Dark background mode — trigger text and icon use light colors. */
+  darkMode?: boolean;
 }
 
 export function DateRangePicker({
@@ -38,6 +42,8 @@ export function DateRangePicker({
   suggestedStartDay,
   destinationName,
   hintText,
+  compact = false,
+  darkMode = false,
 }: DateRangePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [range, setRange] = useState<DateRange>({
@@ -115,40 +121,43 @@ export function DateRangePicker({
 
   return (
     <div ref={containerRef} className="relative">
-      <label className="block text-sm font-medium text-navy mb-2">Travel Dates</label>
+      {!compact && <label className="block text-sm font-medium text-navy mb-2">Travel Dates</label>}
 
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full flex items-center gap-3 px-4 py-3 bg-white border rounded-xl transition-premium ${
-          isOpen ? 'border-gold ring-2 ring-gold/20' : 'border-slate-200 hover:border-slate-300'
-        }`}
+        className={compact
+          ? `w-full flex items-center gap-3 py-1 transition-premium`
+          : `w-full flex items-center gap-3 px-4 py-3 bg-white border rounded-xl transition-premium ${
+              isOpen ? 'border-gold ring-2 ring-gold/20' : 'border-slate-200 hover:border-slate-300'
+            }`
+        }
       >
-        <Calendar className="w-5 h-5 text-gold flex-shrink-0" />
+        <Calendar className={compact ? "w-4 h-4 flex-shrink-0" : "w-5 h-5 flex-shrink-0"} style={{ color: darkMode ? 'rgba(255,255,255,0.55)' : 'var(--color-gold)' }} />
         <div className="flex-1 flex items-center gap-2">
           {checkIn && checkOut ? (
             <>
-              <span className="font-medium text-navy">{format(checkIn, 'MMM d, yyyy')}</span>
-              <ArrowRight className="w-4 h-4 text-slate-400" />
-              <span className="font-medium text-navy">{format(checkOut, 'MMM d, yyyy')}</span>
-              <span className="text-sm text-slate-500 ml-2">
+              <span className="font-medium" style={{ color: darkMode ? '#fff' : 'var(--color-navy)' }}>{format(checkIn, 'MMM d, yyyy')}</span>
+              <ArrowRight className="w-4 h-4" style={{ color: darkMode ? 'rgba(255,255,255,0.4)' : 'var(--er-gray-400)' }} />
+              <span className="font-medium" style={{ color: darkMode ? '#fff' : 'var(--color-navy)' }}>{format(checkOut, 'MMM d, yyyy')}</span>
+              <span className="text-sm ml-2" style={{ color: darkMode ? 'rgba(255,255,255,0.5)' : 'var(--er-gray-500)' }}>
                 ({nights} night{nights !== 1 ? 's' : ''})
               </span>
             </>
           ) : checkIn ? (
             <>
-              <span className="font-medium text-navy">{format(checkIn, 'MMM d, yyyy')}</span>
-              <ArrowRight className="w-4 h-4 text-slate-400" />
-              <span className="text-slate-400">Select check-out</span>
+              <span className="font-medium" style={{ color: darkMode ? '#fff' : 'var(--color-navy)' }}>{format(checkIn, 'MMM d, yyyy')}</span>
+              <ArrowRight className="w-4 h-4" style={{ color: darkMode ? 'rgba(255,255,255,0.4)' : 'var(--er-gray-400)' }} />
+              <span style={{ color: darkMode ? 'rgba(255,255,255,0.4)' : 'var(--er-gray-400)' }}>Select check-out</span>
             </>
           ) : (
-            <span className="text-slate-400">Select check-in and check-out dates</span>
+            <span style={{ color: darkMode ? 'rgba(255,255,255,0.4)' : 'var(--er-gray-400)' }}>Select dates</span>
           )}
         </div>
       </button>
 
       {/* Stay length hint */}
-      <div className="mt-1.5 space-y-1">
+      {!compact && <div className="mt-1.5 space-y-1">
         {hintText !== null && (
           <p className="text-xs text-slate-500">
             {hintText ?? `Stays must be ${minNights}–${maxNights} nights`}
@@ -162,17 +171,17 @@ export function DateRangePicker({
               : `Popular check-in: ${suggestedDayName}s`}
           </p>
         )}
-      </div>
+      </div>}
 
       {isOpen && (
-        <div className="absolute z-50 mt-2 bg-white rounded-xl shadow-lg border border-slate-200 p-5 min-w-[320px]">
+        <div className={`absolute z-50 mt-2 bg-white rounded-xl shadow-lg border border-slate-200 p-4 ${compact ? "left-0 right-auto w-[340px]" : "min-w-[320px]"}`}>
           <DayPicker
             mode="range"
             selected={range}
             onSelect={handleSelect}
             disabled={isDateDisabled}
             defaultMonth={range.from || effectiveMinDate}
-            numberOfMonths={2}
+            numberOfMonths={compact ? 1 : 2}
             showOutsideDays
             navLayout="around"
             components={{
@@ -188,7 +197,7 @@ export function DateRangePicker({
               months: 'flex gap-8',
               month: 'grid grid-cols-[auto_1fr_auto] grid-rows-[auto_1fr] gap-y-4 flex-1 min-w-0',
               month_caption: 'flex justify-center items-center h-11 col-start-2 row-start-1',
-              caption_label: 'font-serif text-lg font-semibold text-navy',
+              caption_label: 'font-serif text-base font-light text-navy',
               nav: 'hidden',
               button_previous:
                 '!static col-start-1 row-start-1 w-10 h-10 flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-navy transition-colors disabled:opacity-40 disabled:pointer-events-none self-center justify-self-start',
@@ -238,8 +247,8 @@ export function DateRangePicker({
             </button>
           </div>
 
-          {/* Quick selection */}
-          <div className="mt-3 pt-3 border-t border-slate-100 space-y-3">
+          {/* Quick selection — hidden in compact mode */}
+          {!compact && <div className="mt-3 pt-3 border-t border-slate-100 space-y-3">
             {nextSuggestedDate && suggestedDayName && (
               <div>
                 <p className="text-xs font-medium text-slate-500 mb-2">
@@ -283,7 +292,7 @@ export function DateRangePicker({
               ))}
               </div>
             </div>
-          </div>
+          </div>}
         </div>
       )}
     </div>

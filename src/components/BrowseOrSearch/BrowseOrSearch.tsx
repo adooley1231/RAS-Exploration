@@ -61,167 +61,90 @@ export function BrowseOrSearch() {
   return (
     <div className="relative">
 
-      {/* ── Light section: Ultra ribbon + Points + Date + Featured ── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-8">
-        <div className="flex flex-col lg:flex-row gap-10">
+      {/* ── Light section: Points bank only (compact) ── */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-6 pb-6">
 
-          {/* Main content */}
-          <div className="flex-1 min-w-0">
-
-            {/* Ultra ribbon */}
-            {user.memberType === 'ultra' && !bannerDismissed && (
-              <div
-                className="mb-6 ultra-shimmer"
-                style={{
-                  background: 'linear-gradient(135deg, var(--er-slate-700) 0%, var(--er-slate-600) 100%)',
-                  borderRadius: 'var(--er-radius-lg)',
-                }}
+        {/* Ultra ribbon */}
+        {user.memberType === 'ultra' && !bannerDismissed && (
+          <div
+            className="mb-4 ultra-shimmer"
+            style={{
+              background: 'linear-gradient(135deg, var(--er-slate-700) 0%, var(--er-slate-600) 100%)',
+              borderRadius: 'var(--er-radius-lg)',
+            }}
+          >
+            <div className="flex items-center gap-3 px-4 py-2.5">
+              <Crown className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--color-gold-light)' }} />
+              <p className="flex-1" style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.8125rem', color: 'rgba(255,255,255,0.9)' }}>
+                <span style={{ fontWeight: 500 }}>Ultra Member</span>
+                {' '}— 12 request spots &amp; additional points to allocate
+              </p>
+              <button
+                type="button"
+                onClick={() => setBannerDismissed(true)}
+                className="transition-colors"
+                style={{ color: 'rgba(255,255,255,0.4)' }}
+                aria-label="Dismiss"
               >
-                <div className="flex items-center gap-3 px-4 py-2.5">
-                  <Crown className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--color-gold-light)' }} />
-                  <p className="flex-1" style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.8125rem', color: 'rgba(255,255,255,0.9)' }}>
-                    <span style={{ fontWeight: 500 }}>Ultra Member</span>
-                    {' '}— 12 request spots &amp; additional points to allocate
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => setBannerDismissed(true)}
-                    className="transition-colors"
-                    style={{ color: 'rgba(255,255,255,0.4)' }}
-                    aria-label="Dismiss"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Points bank */}
-            <div className="mb-8">
-              <PointsBank user={user} requests={requests} />
+                <X className="w-3.5 h-3.5" />
+              </button>
             </div>
-
-            {/* Travel window */}
-            <div className="mb-12">
-              <div className="flex items-center gap-4 mb-4">
-                <p className="label-caps whitespace-nowrap" style={{ color: 'var(--er-gray-400)' }}>
-                  Travel window
-                </p>
-                <div className="flex-1 h-px" style={{ background: 'var(--er-gray-200)' }} />
-                {checkIn && checkOut ? (
-                  <button
-                    type="button"
-                    onClick={() => { setCheckIn(null); setCheckOut(null); }}
-                    className="whitespace-nowrap flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors hover:bg-red-50"
-                    style={{
-                      fontFamily: 'var(--er-font-sans)',
-                      fontSize: '0.8125rem',
-                      fontWeight: 500,
-                      color: 'rgb(185,28,28)',
-                      border: '1px solid rgba(185,28,28,0.25)',
-                      background: 'rgba(185,28,28,0.05)',
-                    }}
-                  >
-                    <X className="w-3.5 h-3.5" />
-                    Clear dates
-                  </button>
-                ) : (
-                  <p
-                    className="whitespace-nowrap hidden sm:block"
-                    style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.75rem', color: 'var(--er-gray-400)' }}
-                  >
-                    Applies to new requests
-                  </p>
-                )}
-              </div>
-              <div
-                className="px-5 py-4"
-                style={{
-                  background: 'var(--er-gray-50)',
-                  border: '1px solid var(--er-gray-200)',
-                  borderRadius: 'var(--er-radius-xl)',
-                  boxShadow: 'var(--er-shadow-xs)',
-                }}
-              >
-                <DateRangePicker
-                  checkIn={checkIn}
-                  checkOut={checkOut}
-                  onChange={(from, to) => {
-                    setCheckIn(from);
-                    setCheckOut(to);
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* ── Featured — asymmetric editorial layout ── */}
-            {featuredDestinations.length > 0 && (
-              <section className="mb-14">
-                <SectionHeading label="Featured" />
-                {featuredDestinations.length === 1 ? (
-                  <HeroCard
-                    destination={featuredHero}
-                    isSelected={selectedDestination?.id === featuredHero.id}
-                    onClick={() => handleCardClick(featuredHero)}
-                    disabled={!canAddMore}
-                    variant="primary"
-                  />
-                ) : (
-                  /* Asymmetric: 63% primary + 37% secondary, matching heights */
-                  <div className="flex flex-col md:flex-row md:items-stretch gap-4">
-                    <div className="md:flex-[0_0_62%]">
-                      <HeroCard
-                        destination={featuredHero}
-                        isSelected={selectedDestination?.id === featuredHero.id}
-                        onClick={() => handleCardClick(featuredHero)}
-                        disabled={!canAddMore}
-                        variant="primary"
-                      />
-                    </div>
-                    <div className="md:flex-1 flex flex-col gap-4">
-                      {featuredSecondary.map((dest) => (
-                        <HeroCard
-                          key={dest.id}
-                          destination={dest}
-                          isSelected={selectedDestination?.id === dest.id}
-                          onClick={() => handleCardClick(dest)}
-                          disabled={!canAddMore}
-                          variant="secondary"
-                          fillHeight={featuredSecondary.length === 1}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </section>
-            )}
           </div>
+        )}
 
-          {/* ── Wishlist sidebar (desktop only in light section) ── */}
-          <div className="hidden lg:block lg:w-[22rem] flex-shrink-0">
-            <WishlistSidebar
-              requests={requests}
-              requestsNeedingDates={requestsNeedingDates}
-              panelCollapsed={panelCollapsed}
-              setPanelCollapsed={setPanelCollapsed}
-              slotPct={slotPct}
-              MAX_REQUESTS={MAX_REQUESTS}
-              user={user}
-              setView={setView}
-              setEditingRequest={setEditingRequest}
-              removeRequest={removeRequest}
-              openAnnotationCallout={openAnnotationCallout}
-            />
-          </div>
-        </div>
+        <PointsBank user={user} requests={requests} />
       </div>
 
-      {/* ── Dark section: All Destinations ── */}
+      {/* ── Dark section: search + dates + destinations ── */}
       <div
-        className="mt-2 pb-16"
+        className="mt-0 pb-16"
         style={{ background: 'var(--color-navy)' }}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-8">
+
+          {/* Search + dates bar — dark frosted */}
+          <div
+            className="mb-8 flex flex-col sm:flex-row"
+            style={{
+              background: 'rgba(255,255,255,0.06)',
+              border: '1px solid rgba(255,255,255,0.10)',
+              borderRadius: 'var(--er-radius-xl)',
+            }}
+          >
+            {/* Search */}
+            <div className="flex items-center gap-3 px-4 py-3.5 flex-1" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+              <Search className="w-4 h-4 flex-shrink-0" style={{ color: 'rgba(255,255,255,0.4)' }} />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search destinations or regions…"
+                className="flex-1 outline-none bg-transparent"
+                style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.875rem', color: '#fff' }}
+              />
+              {searchQuery && (
+                <button type="button" onClick={() => setSearchQuery('')} style={{ color: 'rgba(255,255,255,0.3)' }}>
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Divider */}
+            <div className="hidden sm:block w-px flex-shrink-0" style={{ background: 'rgba(255,255,255,0.08)' }} />
+
+            {/* Date picker */}
+            <div className="sm:w-72 flex-shrink-0 px-4 py-2.5" style={{ position: 'relative' }}>
+              <DateRangePicker
+                checkIn={checkIn}
+                checkOut={checkOut}
+                onChange={(from, to) => { setCheckIn(from); setCheckOut(to); }}
+                hintText={null}
+                compact
+                darkMode
+              />
+            </div>
+          </div>
+
           <div className="flex flex-col lg:flex-row gap-10">
             <div className="flex-1 min-w-0">
               <SectionHeadingDark
@@ -230,38 +153,23 @@ export function BrowseOrSearch() {
                 onToggleView={setDestViewMode}
               />
 
-              {/* Search bar */}
-              <div className="relative mb-6">
-                <Search
-                  className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-                  style={{ color: 'rgba(255,255,255,0.35)' }}
-                />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search by destination or region…"
-                  className="w-full pl-10 pr-10 py-2.5 outline-none transition-colors"
-                  style={{
-                    background: 'rgba(255,255,255,0.06)',
-                    border: '1px solid rgba(255,255,255,0.1)',
-                    borderRadius: 'var(--er-radius-lg)',
-                    fontFamily: 'var(--er-font-sans)',
-                    fontSize: '0.875rem',
-                    color: '#fff',
-                  }}
-                />
-                {searchQuery && (
-                  <button
-                    type="button"
-                    onClick={() => setSearchQuery('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
-                    style={{ color: 'rgba(255,255,255,0.35)' }}
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
+              {/* ── Featured strip ── */}
+              {featuredDestinations.length > 0 && (
+                <div className="mb-10">
+                  <p className="label-caps mb-4" style={{ color: 'rgba(255,255,255,0.4)', letterSpacing: '0.11em' }}>Featured</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {featuredDestinations.slice(0, 3).map((dest) => (
+                      <FeaturedStripCard
+                        key={dest.id}
+                        destination={dest}
+                        isSelected={selectedDestination?.id === dest.id}
+                        onClick={() => handleCardClick(dest)}
+                        disabled={!canAddMore}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {destViewMode === 'grid' ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -302,8 +210,24 @@ export function BrowseOrSearch() {
               )}
             </div>
 
-            {/* Sidebar placeholder on dark section for layout alignment */}
-            <div className="hidden lg:block lg:w-[22rem] flex-shrink-0" />
+            {/* Wishlist sidebar in dark section */}
+            <div className="hidden lg:block lg:w-[22rem] flex-shrink-0">
+              <div className="lg:sticky lg:top-20">
+                <WishlistSidebar
+                  requests={requests}
+                  requestsNeedingDates={requestsNeedingDates}
+                  panelCollapsed={panelCollapsed}
+                  setPanelCollapsed={setPanelCollapsed}
+                  slotPct={slotPct}
+                  MAX_REQUESTS={MAX_REQUESTS}
+                  user={user}
+                  setView={setView}
+                  setEditingRequest={setEditingRequest}
+                  removeRequest={removeRequest}
+                  openAnnotationCallout={openAnnotationCallout}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -535,6 +459,101 @@ function WishlistSidebar({
 }
 
 /* ── Section heading (light) ──────────────────────────────────────── */
+/* ── Featured strip card (dark section) ──────────────────────────── */
+function FeaturedStripCard({
+  destination,
+  isSelected,
+  onClick,
+  disabled,
+}: {
+  destination: Destination;
+  isSelected?: boolean;
+  onClick: () => void;
+  disabled?: boolean;
+}) {
+  const beds = bedroomRange(destination.units);
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className="destination-card group text-left w-full overflow-hidden transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+      style={{
+        borderRadius: 'var(--er-radius-sm)',
+        border: isSelected ? '1px solid var(--color-gold)' : '1px solid rgba(255,255,255,0.08)',
+        boxShadow: isSelected ? '0 0 0 3px rgba(201,169,110,0.2)' : 'none',
+      }}
+    >
+      <div className="relative overflow-hidden" style={{ aspectRatio: '16/9' }}>
+        <img
+          src={destination.imageUrl}
+          alt={destination.name}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+        />
+        <div
+          className="absolute inset-0"
+          style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.1) 55%, rgba(0,0,0,0) 100%)' }}
+        />
+        {isSelected && (
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{ boxShadow: 'inset 0 0 0 2px rgba(201,169,110,0.7)', borderRadius: 'var(--er-radius-sm)' }}
+          />
+        )}
+        {destination.demandTier === 'super-peak' && (
+          <div
+            className="absolute top-2.5 left-2.5 px-2 py-0.5"
+            style={{
+              background: 'rgba(194,65,12,0.82)',
+              backdropFilter: 'blur(6px)',
+              borderRadius: 'var(--er-radius-full)',
+              fontFamily: 'var(--er-font-sans)',
+              fontSize: '0.625rem',
+              fontWeight: 500,
+              color: '#fff',
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+            }}
+          >
+            High Demand
+          </div>
+        )}
+        <div className="absolute bottom-0 left-0 right-0 p-3">
+          <p style={{
+            fontFamily: 'var(--er-font-serif)',
+            fontWeight: 300,
+            fontSize: '1.125rem',
+            color: '#fff',
+            letterSpacing: '-0.01em',
+            lineHeight: 1.15,
+          }}>
+            {destination.name}
+          </p>
+          <div className="flex items-center justify-between mt-1">
+            <div className="flex items-center gap-1" style={{ color: 'rgba(255,255,255,0.55)' }}>
+              <MapPin className="w-2.5 h-2.5" />
+              <span style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.6875rem', letterSpacing: '0.07em', textTransform: 'uppercase' }}>
+                {destination.region}
+              </span>
+            </div>
+            {beds && (
+              <span style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.6875rem', color: 'rgba(255,255,255,0.45)' }}>
+                {beds}
+              </span>
+            )}
+          </div>
+          <p
+            className="mt-2 opacity-0 group-hover:opacity-100 transition-opacity"
+            style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.75rem', color: 'var(--color-gold)', fontWeight: 500 }}
+          >
+            Request stay &rarr;
+          </p>
+        </div>
+      </div>
+    </button>
+  );
+}
+
 function SectionHeading({ label }: { label: string }) {
   return (
     <div className="flex items-center gap-4 mb-6">
