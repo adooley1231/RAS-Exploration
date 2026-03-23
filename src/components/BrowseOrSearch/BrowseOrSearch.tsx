@@ -98,7 +98,7 @@ export function BrowseOrSearch() {
       {/* ── Dark section: search + dates + destinations ── */}
       <div
         className="mt-0 pb-16"
-        style={{ background: 'var(--color-navy)' }}
+        style={{ background: '#F0E8DC' }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-8">
 
@@ -106,31 +106,31 @@ export function BrowseOrSearch() {
           <div
             className="mb-8 flex flex-col sm:flex-row"
             style={{
-              background: 'rgba(255,255,255,0.06)',
-              border: '1px solid rgba(255,255,255,0.10)',
+              background: 'rgba(255,255,255,0.75)',
+              border: '1px solid rgba(0,0,0,0.08)',
               borderRadius: 'var(--er-radius-xl)',
             }}
           >
             {/* Search */}
-            <div className="flex items-center gap-3 px-4 py-3.5 flex-1" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-              <Search className="w-4 h-4 flex-shrink-0" style={{ color: 'rgba(255,255,255,0.4)' }} />
+            <div className="flex items-center gap-3 px-4 py-3.5 flex-1" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+              <Search className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--er-gray-400)' }} />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search destinations or regions…"
                 className="flex-1 outline-none bg-transparent"
-                style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.875rem', color: '#fff' }}
+                style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.875rem', color: 'var(--er-slate-800)' }}
               />
               {searchQuery && (
-                <button type="button" onClick={() => setSearchQuery('')} style={{ color: 'rgba(255,255,255,0.3)' }}>
+                <button type="button" onClick={() => setSearchQuery('')} style={{ color: 'var(--er-gray-400)' }}>
                   <X className="w-4 h-4" />
                 </button>
               )}
             </div>
 
             {/* Divider */}
-            <div className="hidden sm:block w-px flex-shrink-0" style={{ background: 'rgba(255,255,255,0.08)' }} />
+            <div className="hidden sm:block w-px flex-shrink-0" style={{ background: 'rgba(0,0,0,0.08)' }} />
 
             {/* Date picker */}
             <div className="sm:w-72 flex-shrink-0 px-4 py-2.5" style={{ position: 'relative' }}>
@@ -140,7 +140,6 @@ export function BrowseOrSearch() {
                 onChange={(from, to) => { setCheckIn(from); setCheckOut(to); }}
                 hintText={null}
                 compact
-                darkMode
               />
             </div>
           </div>
@@ -156,7 +155,7 @@ export function BrowseOrSearch() {
               {/* ── Featured strip ── */}
               {featuredDestinations.length > 0 && (
                 <div className="mb-10">
-                  <p className="label-caps mb-4" style={{ color: 'rgba(255,255,255,0.4)', letterSpacing: '0.11em' }}>Featured</p>
+                  <p className="label-caps mb-4" style={{ color: 'var(--er-gray-500)', letterSpacing: '0.11em' }}>Featured</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     {featuredDestinations.slice(0, 3).map((dest) => (
                       <FeaturedStripCard
@@ -183,7 +182,7 @@ export function BrowseOrSearch() {
                     />
                   )) : (
                     <div className="col-span-3 py-16 text-center">
-                      <p style={{ fontFamily: 'var(--er-font-serif)', fontStyle: 'italic', fontWeight: 300, fontSize: '1.125rem', color: 'rgba(255,255,255,0.35)' }}>
+                      <p style={{ fontFamily: 'var(--er-font-serif)', fontStyle: 'italic', fontWeight: 300, fontSize: '1.125rem', color: 'var(--er-gray-400)' }}>
                         No destinations match "{searchQuery}"
                       </p>
                     </div>
@@ -201,7 +200,7 @@ export function BrowseOrSearch() {
                     />
                   )) : (
                     <div className="py-16 text-center">
-                      <p style={{ fontFamily: 'var(--er-font-serif)', fontStyle: 'italic', fontWeight: 300, fontSize: '1.125rem', color: 'rgba(255,255,255,0.35)' }}>
+                      <p style={{ fontFamily: 'var(--er-font-serif)', fontStyle: 'italic', fontWeight: 300, fontSize: '1.125rem', color: 'var(--er-gray-400)' }}>
                         No destinations match "{searchQuery}"
                       </p>
                     </div>
@@ -313,7 +312,7 @@ function WishlistSidebar({
           type="button"
           onClick={() => setPanelCollapsed(!panelCollapsed)}
           className="w-full text-left lg:cursor-default"
-          style={{ background: 'var(--color-navy)', padding: '16px 20px 12px' }}
+          style={{ background: 'var(--er-slate-800)', padding: '16px 20px 12px' }}
         >
           <div className="flex items-center justify-between mb-2.5">
             <h3 style={{
@@ -333,7 +332,7 @@ function WishlistSidebar({
               >
                 {requests.length} / {MAX_REQUESTS}
               </span>
-              <span className="lg:hidden" style={{ color: 'rgba(255,255,255,0.35)' }}>
+              <span className="lg:hidden" style={{ color: 'var(--er-gray-400)' }}>
                 {panelCollapsed
                   ? <ChevronDown className="w-4 h-4" />
                   : <ChevronUp className="w-4 h-4" />}
@@ -341,7 +340,7 @@ function WishlistSidebar({
             </div>
           </div>
           {/* Progress bar */}
-          <div className="h-px overflow-hidden" style={{ background: 'rgba(255,255,255,0.1)', borderRadius: '1px' }}>
+          <div className="h-px overflow-hidden" style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '1px' }}>
             <div
               className="h-full wishlist-progress"
               style={{ width: `${slotPct}%`, background: 'var(--color-gold)', opacity: 0.7 }}
@@ -480,7 +479,7 @@ function FeaturedStripCard({
       className="destination-card group text-left w-full overflow-hidden transition-all disabled:opacity-50 disabled:cursor-not-allowed"
       style={{
         borderRadius: 'var(--er-radius-sm)',
-        border: isSelected ? '1px solid var(--color-gold)' : '1px solid rgba(255,255,255,0.08)',
+        border: isSelected ? '1px solid var(--color-gold)' : '1px solid rgba(0,0,0,0.08)',
         boxShadow: isSelected ? '0 0 0 3px rgba(201,169,110,0.2)' : 'none',
       }}
     >
@@ -578,15 +577,15 @@ function SectionHeadingDark({
 }) {
   return (
     <div className="flex items-center gap-4 mb-6">
-      <p className="label-caps whitespace-nowrap" style={{ color: 'rgba(255,255,255,0.35)' }}>{label}</p>
+      <p className="label-caps whitespace-nowrap" style={{ color: 'var(--er-gray-400)' }}>{label}</p>
       <div
         className="flex-1 h-px"
-        style={{ background: 'linear-gradient(to right, rgba(255,255,255,0.1), transparent)' }}
+        style={{ background: 'linear-gradient(to right, rgba(0,0,0,0.1), transparent)' }}
       />
       {viewMode && onToggleView && (
         <div
           className="flex items-center gap-0.5 flex-shrink-0"
-          style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 'var(--er-radius-sm)', padding: '3px' }}
+          style={{ background: 'rgba(0,0,0,0.06)', borderRadius: 'var(--er-radius-sm)', padding: '3px' }}
         >
           <button
             type="button"
@@ -594,8 +593,8 @@ function SectionHeadingDark({
             className="flex items-center justify-center w-7 h-7 transition-colors"
             style={{
               borderRadius: '3px',
-              background: viewMode === 'grid' ? 'rgba(255,255,255,0.12)' : 'transparent',
-              color: viewMode === 'grid' ? '#fff' : 'rgba(255,255,255,0.35)',
+              background: viewMode === 'grid' ? 'rgba(0,0,0,0.10)' : 'transparent',
+              color: viewMode === 'grid' ? 'var(--er-slate-800)' : 'var(--er-gray-400)',
             }}
             title="Grid view"
           >
@@ -607,8 +606,8 @@ function SectionHeadingDark({
             className="flex items-center justify-center w-7 h-7 transition-colors"
             style={{
               borderRadius: '3px',
-              background: viewMode === 'list' ? 'rgba(255,255,255,0.12)' : 'transparent',
-              color: viewMode === 'list' ? '#fff' : 'rgba(255,255,255,0.35)',
+              background: viewMode === 'list' ? 'rgba(0,0,0,0.10)' : 'transparent',
+              color: viewMode === 'list' ? 'var(--er-slate-800)' : 'var(--er-gray-400)',
             }}
             title="List view"
           >
@@ -880,9 +879,9 @@ function DestinationListRow({
       className="destination-card group text-left w-full overflow-hidden transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-stretch"
       style={{
         borderRadius: 'var(--er-radius-sm)',
-        border: isSelected ? '1px solid var(--color-gold)' : '1px solid rgba(255,255,255,0.08)',
+        border: isSelected ? '1px solid var(--color-gold)' : '1px solid rgba(0,0,0,0.07)',
         boxShadow: isSelected ? '0 0 0 3px rgba(201,169,110,0.2)' : 'none',
-        background: isSelected ? 'rgba(201,169,110,0.06)' : 'rgba(255,255,255,0.03)',
+        background: isSelected ? 'rgba(201,169,110,0.10)' : 'rgba(255,255,255,0.55)',
       }}
     >
       {/* Thumbnail */}
@@ -908,7 +907,7 @@ function DestinationListRow({
               fontFamily: 'var(--er-font-serif)',
               fontWeight: 300,
               fontSize: '1.0625rem',
-              color: '#fff',
+              color: 'var(--er-slate-800)',
               letterSpacing: '-0.01em',
               lineHeight: 1.2,
               whiteSpace: 'nowrap',
@@ -920,15 +919,15 @@ function DestinationListRow({
           </p>
           <div className="flex items-center gap-3 mt-1.5 flex-wrap">
             <div className="flex items-center gap-1">
-              <MapPin className="w-2.5 h-2.5 flex-shrink-0" style={{ color: 'rgba(255,255,255,0.4)' }} />
-              <span className="label-caps" style={{ color: 'rgba(255,255,255,0.4)', letterSpacing: '0.09em' }}>
+              <MapPin className="w-2.5 h-2.5 flex-shrink-0" style={{ color: 'var(--er-gray-400)' }} />
+              <span className="label-caps" style={{ color: 'var(--er-gray-400)', letterSpacing: '0.09em' }}>
                 {destination.region}
               </span>
             </div>
             {destination.units.length > 0 && (
               <div className="flex items-center gap-1">
-                <Home className="w-2.5 h-2.5 flex-shrink-0" style={{ color: 'rgba(255,255,255,0.35)' }} />
-                <span style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.6875rem', color: 'rgba(255,255,255,0.4)' }}>
+                <Home className="w-2.5 h-2.5 flex-shrink-0" style={{ color: 'var(--er-gray-400)' }} />
+                <span style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.6875rem', color: 'var(--er-gray-400)' }}>
                   {destination.units.length} {destination.units.length === 1 ? 'residence' : 'residences'}
                   {beds ? ` · ${beds}` : ''}
                 </span>
@@ -957,7 +956,7 @@ function DestinationListRow({
           style={{
             fontFamily: 'var(--er-font-sans)',
             fontSize: '0.75rem',
-            color: isSelected ? 'var(--color-gold-light)' : 'rgba(255,255,255,0)',
+            color: isSelected ? 'var(--color-gold-dark)' : 'transparent',
           }}
         >
           <span
@@ -992,7 +991,7 @@ function DestinationCard({
       className="destination-card group text-left w-full overflow-hidden transition-all disabled:opacity-40 disabled:cursor-not-allowed"
       style={{
         borderRadius: 'var(--er-radius-sm)',
-        border: isSelected ? '1px solid var(--color-gold)' : '1px solid rgba(255,255,255,0.08)',
+        border: isSelected ? '1px solid var(--color-gold)' : '1px solid rgba(0,0,0,0.09)',
         boxShadow: isSelected ? '0 0 0 3px rgba(201,169,110,0.2)' : 'none',
         display: 'block',
       }}

@@ -1,7 +1,5 @@
-import { User, Crown, Settings, Coins, Briefcase, GitBranch } from 'lucide-react';
+import { User, Crown, Settings, Briefcase, GitBranch } from 'lucide-react';
 import { useRAS } from '../../context/RASContext';
-import { PointsBank } from '../shared/PointsBank';
-import { getMemberPoints } from '../../utils/helpers';
 import type { DemoScenario } from '../../types';
 
 const scenarioLabels: Record<DemoScenario, string> = {
@@ -14,13 +12,7 @@ const scenarioLabels: Record<DemoScenario, string> = {
 
 export function Header() {
   const { state, setDemoScenario, setAppMode, reset } = useRAS();
-  const { user, demoScenario, requests, currentView, appMode } = state;
-  const isMemberFlow = appMode === 'member';
-  const showPointsBank =
-    isMemberFlow &&
-    (currentView === 'browse-or-search' || currentView === 'allocate-points' || currentView === 'review');
-  const showPointsPreview = isMemberFlow && currentView === 'browse-or-search';
-  const memberPoints = getMemberPoints(user);
+  const { user, demoScenario, currentView, appMode } = state;
 
   return (
     <header className="bg-white sticky top-0 z-50" style={{ borderBottom: '1px solid var(--er-gray-200)' }}>
@@ -139,26 +131,6 @@ export function Header() {
           {/* Right side */}
           <div className="flex items-center gap-1">
 
-            {/* Points preview — quiet status */}
-            {showPointsPreview && (
-              <div
-                className="hidden md:flex items-center gap-2 px-4 py-1.5 mr-2"
-                style={{ borderRight: '1px solid var(--er-gray-200)' }}
-              >
-                <Coins className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--color-gold)' }} />
-                <span style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.8125rem', color: 'var(--er-base-foreground)' }}>
-                  <strong className="tabular-nums" style={{ fontWeight: 500 }}>{memberPoints}</strong>
-                  <span style={{ color: 'var(--er-gray-500)' }}> pts to allocate</span>
-                </span>
-              </div>
-            )}
-
-            {/* Points bank (allocate / review) */}
-            {showPointsBank && (
-              <div className="hidden md:block mr-2">
-                <PointsBank user={user} requests={requests} variant="compact" />
-              </div>
-            )}
 
             {/* Member badge */}
             <div className="flex items-center gap-2 px-3 py-1.5">
@@ -242,24 +214,7 @@ export function Header() {
           </div>
         </div>
 
-        {/* Mobile */}
-        <div className="md:hidden mt-3 space-y-2">
-          {showPointsPreview && (
-            <div
-              className="flex items-center gap-2 px-3 py-2"
-              style={{ background: 'rgba(201,169,110,0.07)', borderRadius: 'var(--er-radius-md)' }}
-            >
-              <Coins className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--color-gold)' }} />
-              <span style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.8125rem', color: 'var(--er-base-foreground)' }}>
-                <strong className="tabular-nums">{memberPoints}</strong>
-                <span style={{ color: 'var(--er-gray-500)' }}> points to allocate</span>
-              </span>
-            </div>
-          )}
-          {showPointsBank && (
-            <PointsBank user={user} requests={requests} variant="compact" />
-          )}
-        </div>
+
       </div>
     </header>
   );
