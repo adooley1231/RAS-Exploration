@@ -1,4 +1,4 @@
-import { User, Crown, Settings, Coins } from 'lucide-react';
+import { User, Crown, Settings, Coins, Briefcase, GitBranch } from 'lucide-react';
 import { useRAS } from '../../context/RASContext';
 import { PointsBank } from '../shared/PointsBank';
 import { getMemberPoints } from '../../utils/helpers';
@@ -13,15 +13,90 @@ const scenarioLabels: Record<DemoScenario, string> = {
 };
 
 export function Header() {
-  const { state, setDemoScenario, reset } = useRAS();
-  const { user, demoScenario, requests, currentView } = state;
+  const { state, setDemoScenario, setAppMode, reset } = useRAS();
+  const { user, demoScenario, requests, currentView, appMode } = state;
+  const isMemberFlow = appMode === 'member';
   const showPointsBank =
-    currentView === 'browse-or-search' || currentView === 'allocate-points' || currentView === 'review';
-  const showPointsPreview = currentView === 'browse-or-search';
+    isMemberFlow &&
+    (currentView === 'browse-or-search' || currentView === 'allocate-points' || currentView === 'review');
+  const showPointsPreview = isMemberFlow && currentView === 'browse-or-search';
   const memberPoints = getMemberPoints(user);
 
   return (
     <header className="bg-white sticky top-0 z-50" style={{ borderBottom: '1px solid var(--er-gray-200)' }}>
+      {/* Mode toggle — above main header bar (progress steps render below Header in App) */}
+      <div
+        className="w-full"
+        style={{
+          borderBottom: '1px solid var(--er-gray-100)',
+          background: 'var(--er-gray-50)',
+        }}
+      >
+        <div className="max-w-6xl mx-auto px-6 py-2 flex justify-center">
+          <div
+            className="flex items-center gap-0.5 p-0.5 w-full max-w-md sm:max-w-none sm:w-auto justify-center overflow-x-auto"
+            style={{
+              background: 'var(--er-gray-100)',
+              borderRadius: '10px',
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => setAppMode('member')}
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 transition-all whitespace-nowrap flex-1 sm:flex-initial justify-center"
+              style={{
+                borderRadius: '8px',
+                fontFamily: 'var(--er-font-sans)',
+                fontSize: '0.6875rem',
+                fontWeight: appMode === 'member' ? 500 : 400,
+                background: appMode === 'member' ? 'var(--er-white)' : 'transparent',
+                color: appMode === 'member' ? 'var(--er-slate-800)' : 'var(--er-gray-500)',
+                boxShadow: appMode === 'member' ? 'var(--er-shadow-xs)' : 'none',
+              }}
+            >
+              <User className="w-3 h-3 flex-shrink-0" />
+              Member
+            </button>
+            <button
+              type="button"
+              onClick={() => setAppMode('ambassador')}
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 transition-all whitespace-nowrap flex-1 sm:flex-initial justify-center"
+              style={{
+                borderRadius: '8px',
+                fontFamily: 'var(--er-font-sans)',
+                fontSize: '0.6875rem',
+                fontWeight: appMode === 'ambassador' ? 500 : 400,
+                background: appMode === 'ambassador' ? 'var(--er-slate-800)' : 'transparent',
+                color: appMode === 'ambassador' ? '#fff' : 'var(--er-gray-500)',
+                boxShadow: appMode === 'ambassador' ? 'var(--er-shadow-xs)' : 'none',
+              }}
+            >
+              <Briefcase className="w-3 h-3 flex-shrink-0" />
+              Ambassador
+            </button>
+            <button
+              type="button"
+              onClick={() => setAppMode('lottery-logic')}
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 transition-all whitespace-nowrap flex-1 sm:flex-initial justify-center"
+              style={{
+                borderRadius: '8px',
+                fontFamily: 'var(--er-font-sans)',
+                fontSize: '0.6875rem',
+                fontWeight: appMode === 'lottery-logic' ? 500 : 400,
+                background: appMode === 'lottery-logic' ? 'var(--er-white)' : 'transparent',
+                color: appMode === 'lottery-logic' ? '#004750' : 'var(--er-gray-500)',
+                boxShadow: appMode === 'lottery-logic' ? 'var(--er-shadow-xs)' : 'none',
+                border: appMode === 'lottery-logic' ? '1px solid rgba(0, 71, 80, 0.2)' : '1px solid transparent',
+              }}
+            >
+              <GitBranch className="w-3 h-3 flex-shrink-0" />
+              <span className="hidden sm:inline">How it works</span>
+              <span className="sm:hidden">Logic</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div className="max-w-6xl mx-auto px-6 py-3">
         <div className="flex items-center justify-between">
 

@@ -33,7 +33,7 @@ import {
 } from '../../utils/helpers';
 
 export function ReviewSubmit() {
-  const { state, setView, submitRequests, setTokensToUse } = useRAS();
+  const { state, setView, submitRequests, setTokensToUse, openAnnotationCallout } = useRAS();
   const { requests, user, rasRunDate, tokensToUse } = state;
 
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -56,6 +56,7 @@ export function ReviewSubmit() {
       : 0;
 
   const handleSubmit = async () => {
+    openAnnotationCallout('member-confirm-submit');
     setIsSubmitting(true);
     await new Promise((resolve) => setTimeout(resolve, 1500));
     submitRequests();
@@ -469,7 +470,7 @@ export function ReviewSubmit() {
                 >
                   <Info className="w-4 h-4 text-gold flex-shrink-0 mt-0.5" />
                   <p style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.75rem', color: 'var(--er-gray-600)' }}>
-                    With 1 token, you can only win your highest-ranked available request. Your other requests serve as backups.
+                    With this setting, you can only win your highest-ranked available request. Your other requests serve as backups.
                   </p>
                 </div>
               )}
@@ -483,8 +484,6 @@ export function ReviewSubmit() {
               {[
                 { label: 'Total requests', value: requests.length, valueColor: 'var(--er-slate-800)' },
                 { label: 'Points allocated', value: `${pointsAllocated} / ${totalPoints}`, valueColor: 'var(--color-gold-dark)' },
-                { label: 'Max wins', value: tokensToUse, valueColor: 'var(--er-slate-800)' },
-                { label: 'Max possible wins', value: Math.min(tokensToUse, maxWins), valueColor: 'var(--er-slate-800)' },
               ].map(({ label, value, valueColor }) => (
                 <div key={label} className="flex justify-between items-baseline">
                   <span style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.8125rem', color: 'var(--er-gray-500)' }}>{label}</span>

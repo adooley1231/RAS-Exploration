@@ -1,0 +1,15 @@
+# Netlify build settings — deploy from this folder (ras-exploration)
+# In Netlify UI: Base directory = this folder if the repo root is the parent workspace.
+
+[build]
+  command = "npm ci && npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# SPA fallback (Vite/React)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

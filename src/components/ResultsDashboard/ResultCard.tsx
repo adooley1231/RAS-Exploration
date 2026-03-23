@@ -7,6 +7,7 @@ import {
   X,
   Shuffle,
   Home,
+  Flame,
 } from 'lucide-react';
 import { format, isSameDay, differenceInDays } from 'date-fns';
 import type { RASResult } from '../../types';
@@ -16,13 +17,20 @@ interface ResultCardProps {
   result: RASResult;
   onAccept: () => void;
   onDecline: () => void;
+  /** Controlled waitlist opt-in state — managed by parent */
+  waitlistOptIn?: boolean;
+  onToggleWaitlist?: (id: string, checked: boolean) => void;
+  /** True after the parent has submitted the waitlist selection */
+  waitlistConfirmed?: boolean;
 }
 
-export function ResultCard({ result, onAccept, onDecline }: ResultCardProps) {
+export function ResultCard({ result, onAccept, onDecline, waitlistOptIn = false, onToggleWaitlist, waitlistConfirmed = false }: ResultCardProps) {
   const isWin = result.status === 'won';
   const isPending = result.acceptStatus === 'pending';
   const isAccepted = result.acceptStatus === 'accepted';
   const isDeclined = result.acceptStatus === 'declined';
+
+  const isHighDemand = result.destination.demandTier === 'super-peak';
 
   const datesChanged =
     result.matchedDates && !isSameDay(result.matchedDates.checkIn, result.originalCheckIn);
@@ -136,6 +144,24 @@ export function ResultCard({ result, onAccept, onDecline }: ResultCardProps) {
       <div className="p-5">
         {isWin && result.matchedDates && (
           <>
+            {/* High-demand win callout */}
+            {isHighDemand && (
+              <div
+                className="mb-4 p-3 flex items-start gap-2"
+                style={{ background: 'rgba(194,65,12,0.07)', borderRadius: 'var(--er-radius-md)', border: '1px solid rgba(194,65,12,0.18)' }}
+              >
+                <Flame className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: 'rgb(194,65,12)' }} />
+                <div>
+                  <p style={{ fontFamily: 'var(--er-font-sans)', fontWeight: 500, fontSize: '0.875rem', color: 'rgb(154,52,18)' }}>
+                    Highly sought-after reservation
+                  </p>
+                  <p style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.8125rem', color: 'var(--er-gray-600)', marginTop: '2px' }}>
+                    This is one of our most requested destinations — congratulations on securing it.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Dates and stay */}
             <div className="flex flex-wrap gap-4 mb-4">
               <div className="flex items-center gap-2">
@@ -218,6 +244,9 @@ export function ResultCard({ result, onAccept, onDecline }: ResultCardProps) {
                   </span>
                   <CountdownTimer deadline={result.declineDeadline} size="md" />
                 </div>
+                <p style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.75rem', color: 'var(--er-gray-400)', textAlign: 'center' }}>
+                  If you take no action, this reservation will be automatically released when the timer expires.
+                </p>
 
                 <div className="flex gap-3">
                   <button
@@ -294,16 +323,58 @@ export function ResultCard({ result, onAccept, onDecline }: ResultCardProps) {
 
         {/* Lost state */}
         {!isWin && (
-          <div className="text-center py-4">
+          <div className="py-3">
             {result.pointsInvested != null && (
-              <p style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.8125rem', color: 'var(--er-gray-500)', marginBottom: '0.5rem' }}>
+              <p style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.8125rem', color: 'var(--er-gray-500)', marginBottom: '0.5rem', textAlign: 'center' }}>
                 You allocated {result.pointsInvested} points
                 {result.percentOfBudget != null ? ` (${result.percentOfBudget}% of budget)` : ''}.
               </p>
             )}
-            <p style={{ fontFamily: 'var(--er-font-serif)', fontStyle: 'italic', fontWeight: 300, fontSize: '0.9375rem', color: 'var(--er-gray-500)' }}>
+            <p style={{ fontFamily: 'var(--er-font-serif)', fontStyle: 'italic', fontWeight: 300, fontSize: '0.9375rem', color: 'var(--er-gray-500)', textAlign: 'center', marginBottom: '1rem' }}>
               This destination was not available for your requested dates.
             </p>
+
+            {/* Cancellation waitlist opt-in */}
+            {waitlistConfirmed ? (
+              <div
+                className="flex items-center gap-3 p-3 rounded-xl"
+                style={{ background: 'rgba(27,102,117,0.06)', border: '1px solid rgba(27,102,117,0.2)' }}
+              >
+                <div
+                  className="w-5 h-5 flex items-center justify-center rounded-full flex-shrink-0"
+                  style={{ background: 'var(--color-teal)' }}
+                >
+                  <Check className="w-3 h-3 text-white" />
+                </div>
+                <p style={{ fontFamily: 'var(--er-font-sans)', fontWeight: 500, fontSize: '0.8125rem', color: 'var(--color-teal)' }}>
+                  On the cancellation waitlist
+                </p>
+              </div>
+            ) : (
+              <label
+                className="flex items-start gap-3 cursor-pointer p-3 rounded-xl transition-all"
+                style={{
+                  background: waitlistOptIn ? 'rgba(27,102,117,0.06)' : 'var(--er-gray-50)',
+                  border: waitlistOptIn ? '1px solid rgba(27,102,117,0.25)' : '1px solid var(--er-gray-200)',
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={waitlistOptIn}
+                  onChange={(e) => onToggleWaitlist?.(result.id, e.target.checked)}
+                  className="mt-0.5 w-4 h-4 rounded flex-shrink-0"
+                  style={{ accentColor: 'var(--color-teal)' }}
+                />
+                <div>
+                  <p style={{ fontFamily: 'var(--er-font-sans)', fontWeight: 500, fontSize: '0.8125rem', color: 'var(--er-slate-800)' }}>
+                    Cancellation waitlist
+                  </p>
+                  <p style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.75rem', color: 'var(--er-gray-500)', marginTop: '2px' }}>
+                    Notify me if a spot opens at {result.destination.name}
+                  </p>
+                </div>
+              </label>
+            )}
           </div>
         )}
       </div>

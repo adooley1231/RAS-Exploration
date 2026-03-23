@@ -68,6 +68,8 @@ export interface VacationRequest {
   minNights?: number;
   /** True when dates were auto-filled as a placeholder (7 days out, 5 nights). Member should set real dates. */
   isPlaceholderDates?: boolean;
+  /** Indicates whether this request was submitted by the member directly or by their ambassador. */
+  submittedBy?: 'member' | 'ambassador';
 }
 
 export interface RASResult {
@@ -87,6 +89,7 @@ export interface RASResult {
   declinedAt?: Date;
   declineDeadline: Date;
   arTokensUsed: number;
+  cancelWaitlistOptIn?: boolean;
 }
 
 export interface TRVRInfo {
@@ -98,11 +101,78 @@ export interface TRVRInfo {
   quartersAgo?: number;
 }
 
-export type AppView = 'browse-or-search' | 'request-builder' | 'allocate-points' | 'review' | 'results';
+export type AppView = 'browse-or-search' | 'request-builder' | 'allocate-points' | 'review' | 'results' | 'ambassador-dashboard';
 export type DemoScenario = 'regular' | 'ultra' | 'first-time' | 'results-mix' | 'no-wins';
+export type AppMode = 'member' | 'ambassador' | 'lottery-logic';
+
+export type AnnotationCalloutId =
+  | 'member-continue-allocate'
+  | 'member-continue-review'
+  | 'member-confirm-submit'
+  | 'member-results-accept'
+  | 'member-results-decline'
+  | 'member-waitlist-submit'
+  | 'ambassador-submit-on-behalf'
+  | 'ambassador-accept-on-behalf'
+  | 'ambassador-release-history';
+
+/** A single request entry within a historical release record. */
+export interface HistoricalReleaseRequest {
+  destinationId: string;
+  destinationName: string;
+  region: string;
+  demandTier?: DemandTier;
+  rank: number;
+  pointsAllocated: number;
+  status: 'won' | 'lost';
+  submittedBy: 'member' | 'ambassador';
+}
+
+/** Full record of a member's participation in one past RAS release quarter. */
+export interface HistoricalRelease {
+  quarter: string;       // e.g. "Q1 2025"
+  releaseId: string;
+  participated: boolean;
+  requests: HistoricalReleaseRequest[];
+  wins: number;
+  totalPoints: number;
+  pointsBudget: number;
+  submittedBy?: 'member' | 'ambassador' | 'mixed';
+}
+
+/** Per-member record used inside an AmbassadorProfile. */
+export interface ManagedMember {
+  user: User;
+  requests: VacationRequest[];
+  results: RASResult[];
+  /** High-level submission state for this release. */
+  rasStatus: 'not-started' | 'in-progress' | 'submitted' | 'results-available';
+  /** Total points budget for this member this quarter. */
+  pointsBudget: number;
+  lastActivity?: Date;
+  /** Past release participation history, most recent first. */
+  history?: HistoricalRelease[];
+  /** Set when this quarter’s list was finalized via ambassador submit-on-behalf (prototype). */
+  lastSubmission?: {
+    at: Date;
+    by: 'ambassador';
+  };
+}
+
+/** Ambassador's full profile including their member portfolio. */
+export interface AmbassadorProfile {
+  id: string;
+  name: string;
+  members: ManagedMember[];
+}
 
 export interface RASState {
   currentView: AppView;
+  appMode: AppMode;
+  /** ID of the ManagedMember currently being viewed/edited in ambassador mode. */
+  activeMemberId: string | null;
+  /** Which backend annotation modal is currently open (if any). */
+  annotationCalloutId: AnnotationCalloutId | null;
   user: User;
   requests: VacationRequest[];
   results: RASResult[];
@@ -118,6 +188,9 @@ export interface RASState {
 
 export type RASAction =
   | { type: 'SET_VIEW'; payload: AppView }
+  | { type: 'SET_APP_MODE'; payload: AppMode }
+  | { type: 'SET_ACTIVE_MEMBER'; payload: string | null }
+  | { type: 'SET_ANNOTATION_CALLOUT'; payload: AnnotationCalloutId | null }
   | { type: 'SET_BROWSE_DESTINATION'; payload: Destination | null }
   | { type: 'SET_BROWSE_DATE_RANGE'; payload: { from: Date; to: Date } | null }
   | { type: 'SET_USER'; payload: User }

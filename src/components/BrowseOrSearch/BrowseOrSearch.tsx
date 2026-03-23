@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MapPin, ArrowRight, ChevronUp, ChevronDown, AlertTriangle, Crown, X, Pencil, Trash2, Compass, LayoutGrid, List, Home } from 'lucide-react';
+import { MapPin, ArrowRight, ChevronUp, ChevronDown, AlertTriangle, Crown, X, Pencil, Trash2, Compass, LayoutGrid, List, Home, Search } from 'lucide-react';
 import { useRAS } from '../../context/RASContext';
 import { DateRangePicker } from '../RequestBuilder/DateRangePicker';
 import { EditRequestModal } from './EditRequestModal';
@@ -7,10 +7,10 @@ import { DestinationMiniPanel } from './DestinationMiniPanel';
 import { PointsBank } from '../shared/PointsBank';
 import { destinations } from '../../data/mockData';
 import { formatDateRange, getNights } from '../../utils/helpers';
-import type { Destination, VacationRequest } from '../../types';
+import type { AppView, AnnotationCalloutId, Destination, VacationRequest } from '../../types';
 
 export function BrowseOrSearch() {
-  const { state, setView, addRequest, removeRequest } = useRAS();
+  const { state, setView, addRequest, removeRequest, openAnnotationCallout } = useRAS();
   const { user, requests } = state;
 
   const MAX_REQUESTS = user.memberType === 'ultra' ? 12 : 10;
@@ -22,9 +22,16 @@ export function BrowseOrSearch() {
   const [panelCollapsed, setPanelCollapsed] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const [destViewMode, setDestViewMode] = useState<'grid' | 'list'>('grid');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const featuredDestinations = destinations.filter((d) => d.featured || d.available);
-  const otherDestinations = destinations.filter((d) => !d.featured && !d.available);
+  const allOtherDestinations = destinations.filter((d) => !d.featured && !d.available);
+  const otherDestinations = searchQuery.trim()
+    ? destinations.filter((d) =>
+        d.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        d.region.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : allOtherDestinations;
   const canAddMore = requests.length < MAX_REQUESTS;
   const requestsNeedingDates = requests.filter((r) => r.isPlaceholderDates);
 
@@ -36,6 +43,8 @@ export function BrowseOrSearch() {
   const handleMiniPanelAdd = (request: VacationRequest) => {
     addRequest(request);
     setSelectedDestination(null);
+    setCheckIn(null);
+    setCheckOut(null);
   };
 
   const handleMiniPanelAdvanced = (request: VacationRequest) => {
@@ -99,12 +108,31 @@ export function BrowseOrSearch() {
                   Travel window
                 </p>
                 <div className="flex-1 h-px" style={{ background: 'var(--er-gray-200)' }} />
-                <p
-                  className="whitespace-nowrap hidden sm:block"
-                  style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.75rem', color: 'var(--er-gray-400)' }}
-                >
-                  Applies to new requests
-                </p>
+                {checkIn && checkOut ? (
+                  <button
+                    type="button"
+                    onClick={() => { setCheckIn(null); setCheckOut(null); }}
+                    className="whitespace-nowrap flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors hover:bg-red-50"
+                    style={{
+                      fontFamily: 'var(--er-font-sans)',
+                      fontSize: '0.8125rem',
+                      fontWeight: 500,
+                      color: 'rgb(185,28,28)',
+                      border: '1px solid rgba(185,28,28,0.25)',
+                      background: 'rgba(185,28,28,0.05)',
+                    }}
+                  >
+                    <X className="w-3.5 h-3.5" />
+                    Clear dates
+                  </button>
+                ) : (
+                  <p
+                    className="whitespace-nowrap hidden sm:block"
+                    style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.75rem', color: 'var(--er-gray-400)' }}
+                  >
+                    Applies to new requests
+                  </p>
+                )}
               </div>
               <div
                 className="px-5 py-4"
@@ -151,7 +179,7 @@ export function BrowseOrSearch() {
                       />
                     </div>
                     <div className="md:flex-1 flex flex-col gap-4">
-                      {featuredSecondary.map((dest, i) => (
+                      {featuredSecondary.map((dest) => (
                         <HeroCard
                           key={dest.id}
                           destination={dest}
@@ -182,6 +210,7 @@ export function BrowseOrSearch() {
               setView={setView}
               setEditingRequest={setEditingRequest}
               removeRequest={removeRequest}
+              openAnnotationCallout={openAnnotationCallout}
             />
           </div>
         </div>
@@ -200,9 +229,43 @@ export function BrowseOrSearch() {
                 viewMode={destViewMode}
                 onToggleView={setDestViewMode}
               />
+
+              {/* Search bar */}
+              <div className="relative mb-6">
+                <Search
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
+                  style={{ color: 'rgba(255,255,255,0.35)' }}
+                />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search by destination or region…"
+                  className="w-full pl-10 pr-10 py-2.5 outline-none transition-colors"
+                  style={{
+                    background: 'rgba(255,255,255,0.06)',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    borderRadius: 'var(--er-radius-lg)',
+                    fontFamily: 'var(--er-font-sans)',
+                    fontSize: '0.875rem',
+                    color: '#fff',
+                  }}
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
+                    style={{ color: 'rgba(255,255,255,0.35)' }}
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+
               {destViewMode === 'grid' ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {(otherDestinations.length > 0 ? otherDestinations : destinations).map((dest) => (
+                  {otherDestinations.length > 0 ? otherDestinations.map((dest) => (
                     <DestinationCard
                       key={dest.id}
                       destination={dest}
@@ -210,11 +273,17 @@ export function BrowseOrSearch() {
                       onClick={() => handleCardClick(dest)}
                       disabled={!canAddMore}
                     />
-                  ))}
+                  )) : (
+                    <div className="col-span-3 py-16 text-center">
+                      <p style={{ fontFamily: 'var(--er-font-serif)', fontStyle: 'italic', fontWeight: 300, fontSize: '1.125rem', color: 'rgba(255,255,255,0.35)' }}>
+                        No destinations match "{searchQuery}"
+                      </p>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="flex flex-col gap-2">
-                  {(otherDestinations.length > 0 ? otherDestinations : destinations).map((dest) => (
+                  {otherDestinations.length > 0 ? otherDestinations.map((dest) => (
                     <DestinationListRow
                       key={dest.id}
                       destination={dest}
@@ -222,7 +291,13 @@ export function BrowseOrSearch() {
                       onClick={() => handleCardClick(dest)}
                       disabled={!canAddMore}
                     />
-                  ))}
+                  )) : (
+                    <div className="py-16 text-center">
+                      <p style={{ fontFamily: 'var(--er-font-serif)', fontStyle: 'italic', fontWeight: 300, fontSize: '1.125rem', color: 'rgba(255,255,255,0.35)' }}>
+                        No destinations match "{searchQuery}"
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -246,6 +321,7 @@ export function BrowseOrSearch() {
           setView={setView}
           setEditingRequest={setEditingRequest}
           removeRequest={removeRequest}
+          openAnnotationCallout={openAnnotationCallout}
         />
       </div>
 
@@ -284,6 +360,7 @@ function WishlistSidebar({
   setView,
   setEditingRequest,
   removeRequest,
+  openAnnotationCallout,
 }: {
   requests: VacationRequest[];
   requestsNeedingDates: VacationRequest[];
@@ -292,9 +369,10 @@ function WishlistSidebar({
   slotPct: number;
   MAX_REQUESTS: number;
   user: { memberType: string };
-  setView: (v: string) => void;
+  setView: (v: AppView) => void;
   setEditingRequest: (r: VacationRequest | null) => void;
   removeRequest: (id: string) => void;
+  openAnnotationCallout: (id: AnnotationCalloutId) => void;
 }) {
   return (
     <div className="lg:sticky lg:top-20">
@@ -424,7 +502,10 @@ function WishlistSidebar({
                 </div>
               )}
               <button
-                onClick={() => setView('allocate-points')}
+                onClick={() => {
+                  setView('allocate-points');
+                  openAnnotationCallout('member-continue-allocate');
+                }}
                 className="w-full flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
                 style={{
                   padding: '14px 16px',
@@ -677,6 +758,26 @@ function HeroCard({
           />
         )}
 
+        {/* Demand badge — super-peak only */}
+        {destination.demandTier === 'super-peak' && (
+          <div
+            className="absolute top-3.5 left-3.5 px-2.5 py-1"
+            style={{
+              background: 'rgba(194,65,12,0.82)',
+              backdropFilter: 'blur(6px)',
+              borderRadius: 'var(--er-radius-full)',
+              fontFamily: 'var(--er-font-sans)',
+              fontSize: '0.6875rem',
+              fontWeight: 500,
+              color: '#fff',
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+            }}
+          >
+            High Demand
+          </div>
+        )}
+
         {/* Residence count badge */}
         {destination.units.length > 0 && (
           <div
@@ -814,6 +915,20 @@ function DestinationListRow({
                 </span>
               </div>
             )}
+            {destination.demandTier === 'super-peak' && (
+              <span
+                style={{
+                  fontFamily: 'var(--er-font-sans)',
+                  fontSize: '0.5625rem',
+                  fontWeight: 500,
+                  color: 'rgb(251,146,60)',
+                  letterSpacing: '0.06em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                High Demand
+              </span>
+            )}
           </div>
         </div>
 
@@ -879,6 +994,26 @@ function DestinationCard({
             className="absolute inset-0 pointer-events-none"
             style={{ boxShadow: 'inset 0 0 0 2px rgba(201,169,110,0.7)', borderRadius: 'var(--er-radius-sm)' }}
           />
+        )}
+
+        {/* Demand badge — super-peak only */}
+        {destination.demandTier === 'super-peak' && (
+          <div
+            className="absolute top-2.5 left-2.5 px-2 py-0.5"
+            style={{
+              background: 'rgba(194,65,12,0.82)',
+              backdropFilter: 'blur(6px)',
+              borderRadius: 'var(--er-radius-full)',
+              fontFamily: 'var(--er-font-sans)',
+              fontSize: '0.5625rem',
+              fontWeight: 500,
+              color: '#fff',
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+            }}
+          >
+            High Demand
+          </div>
         )}
 
         {/* Residence count badge */}

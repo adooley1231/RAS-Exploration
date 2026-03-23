@@ -11,7 +11,6 @@ import {
   Home,
   ChevronUp,
   ChevronDown,
-  Coins,
 } from 'lucide-react';
 import type { VacationRequest, User } from '../../types';
 import {
@@ -19,7 +18,6 @@ import {
   getDuplicateDestinationIds,
   getNights,
   formatUnitPreference,
-  getEfficiencyLevel,
   calculateTRVR,
   getWishListBoost,
   computeRequestWeight,
@@ -70,30 +68,23 @@ export function SortablePointsCard({
   const duplicateIds = getDuplicateDestinationIds(allRequests);
   const isDuplicate = duplicateIds.has(request.destination.id);
   const nights = getNights(request.checkInDate, request.checkOutDate);
-  const efficiency = getEfficiencyLevel(request.destination, request.pointsAllocated, user);
   const trvr = calculateTRVR(user, request.destination.id);
   const wishListBoost = getWishListBoost(user, request.destination.id);
   const pct = totalPoints > 0 ? Math.round((request.pointsAllocated / totalPoints) * 100) : 0;
   const weight = computeRequestWeight(user, request);
-
-  const efficiencyClass = {
-    good: 'bg-teal/10 text-teal',
-    moderate: 'bg-amber/10 text-amber',
-    low: 'bg-coral/10 text-coral',
-  }[efficiency];
+  const isHighDemand = request.destination.demandTier === 'super-peak';
 
   return (
     <div
       ref={setNodeRef}
-      style={style}
       style={{
+        ...style,
         background: 'var(--er-white)',
         borderRadius: 'var(--er-radius-xl)',
         overflow: 'hidden',
         boxShadow: isDragging ? 'var(--er-shadow-xl)' : 'var(--er-shadow-sm)',
         border: '1px solid var(--er-gray-200)',
         opacity: isDragging ? 0.5 : 1,
-        transform: isDragging ? 'scale(1.015)' : undefined,
         transition: 'box-shadow 0.2s, transform 0.2s',
       }}
     >
@@ -175,18 +166,14 @@ export function SortablePointsCard({
                     ultraBoost={user.memberType === 'ultra'}
                     compact
                   />
-                  <span
-                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-medium ${efficiencyClass}`}
-                    title={
-                      efficiency === 'good'
-                        ? 'Good odds for points invested'
-                        : efficiency === 'moderate'
-                          ? 'Moderate odds'
-                          : 'Low odds — consider more points'
-                    }
-                  >
-                    {efficiency === 'good' ? 'Good odds' : efficiency === 'moderate' ? 'Moderate' : 'Low odds'}
-                  </span>
+                  {isHighDemand && (
+                    <span
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-medium text-xs"
+                      style={{ background: 'rgba(234,88,12,0.1)', color: 'rgb(194,65,12)' }}
+                    >
+                      Highly Popular
+                    </span>
+                  )}
                 </div>
                 {weight > 0 && (
                   <div className="text-slate-500 tabular-nums">

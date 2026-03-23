@@ -23,11 +23,10 @@ import {
   getPointsAllocated,
   getPointsRemaining,
   hasDuplicateDestinations,
-  calculateMaxWins,
 } from '../../utils/helpers';
 
 export function PointsAllocation() {
-  const { state, reorderRequests, updateRequest, setView } = useRAS();
+  const { state, reorderRequests, updateRequest, setView, openAnnotationCallout } = useRAS();
   const { requests, user } = state;
 
   const [showTip, setShowTip] = useState(true);
@@ -141,7 +140,6 @@ export function PointsAllocation() {
   };
 
   const hasDuplicates = hasDuplicateDestinations(requests);
-  const maxWins = calculateMaxWins(user, requests);
   const isOverAllocated = remaining < 0;
 
   return (
@@ -250,36 +248,6 @@ export function PointsAllocation() {
         </div>
       )}
 
-      {/* Max wins stat — dark feature card */}
-      <div
-        className="mb-6 flex items-center justify-between px-5 py-4"
-        style={{
-          background: 'var(--er-slate-800)',
-          borderRadius: 'var(--er-radius-xl)',
-          boxShadow: 'var(--er-shadow-md)',
-        }}
-      >
-        <div>
-          <p className="label-caps" style={{ color: 'rgba(255,255,255,0.45)' }}>Maximum possible wins this quarter</p>
-          <p className="tabular-nums mt-1" style={{ fontFamily: 'var(--er-font-sans)', fontSize: '2rem', fontWeight: 300, color: 'var(--color-gold)', lineHeight: 1 }}>
-            {maxWins}
-          </p>
-        </div>
-        {user.memberType === 'ultra' && (
-          <span
-            className="label-caps px-3 py-1.5"
-            style={{
-              background: 'linear-gradient(135deg, var(--color-gold-dark), var(--color-gold))',
-              color: '#fff',
-              borderRadius: 'var(--er-radius-full)',
-              letterSpacing: '0.1em',
-            }}
-          >
-            Ultra · Unlimited
-          </span>
-        )}
-      </div>
-
       {/* Cards */}
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={requests.map((r) => r.id)} strategy={verticalListSortingStrategy}>
@@ -345,7 +313,10 @@ export function PointsAllocation() {
           Back to Requests
         </button>
         <button
-          onClick={() => setView('review')}
+          onClick={() => {
+            setView('review');
+            openAnnotationCallout('member-continue-review');
+          }}
           disabled={isOverAllocated}
           className="flex-1 flex items-center justify-center gap-2 transition-premium"
           style={{
