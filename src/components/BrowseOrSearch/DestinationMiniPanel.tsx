@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react';
-import { X, Plus, Settings2, MapPin, CalendarDays, CalendarRange } from 'lucide-react';
+import { X, Plus, Settings2, MapPin, CalendarDays } from 'lucide-react';
 import { DateRangePicker } from '../RequestBuilder/DateRangePicker';
 import { UnitSelector } from '../RequestBuilder/UnitSelector';
 import { generateId } from '../../utils/helpers';
 import type { Destination, VacationRequest, Unit } from '../../types';
-
-type DateMode = 'exact' | 'flexible';
 
 interface DestinationMiniPanelProps {
   destination: Destination;
@@ -24,16 +22,10 @@ export function DestinationMiniPanel({
   onClose,
   onOpenAdvanced,
 }: DestinationMiniPanelProps) {
-  const [dateMode, setDateMode] = useState<DateMode>('exact');
   const [checkIn, setCheckIn] = useState<Date | null>(globalCheckIn);
   const [checkOut, setCheckOut] = useState<Date | null>(globalCheckOut);
-  const [desiredNights, setDesiredNights] = useState<number>(7);
   const [preferredUnits, setPreferredUnits] = useState<Unit[]>([]);
   const [mustIncludeWeekend, setMustIncludeWeekend] = useState(false);
-
-  const flexibleDates = dateMode === 'flexible';
-
-  const NIGHT_OPTIONS = [2, 3, 4, 5, 6, 7, 10, 14];
 
   useEffect(() => {
     if (!checkIn && globalCheckIn) setCheckIn(globalCheckIn);
@@ -49,9 +41,8 @@ export function DestinationMiniPanel({
     checkOutDate: checkOut!,
     selectedUnit: preferredUnits[0] ?? null,
     preferredUnits: preferredUnits.length > 0 ? preferredUnits : undefined,
-    flexibleDates,
+    flexibleDates: false,
     mustIncludeWeekend,
-    minNights: flexibleDates ? desiredNights : undefined,
     pointsAllocated: 0,
     isPlaceholderDates: false,
   });
@@ -64,13 +55,6 @@ export function DestinationMiniPanel({
   const handleOpenAdvanced = () => {
     if (!hasDates) return;
     onOpenAdvanced(buildRequest());
-  };
-
-  const switchMode = (mode: DateMode) => {
-    setDateMode(mode);
-    setCheckIn(null);
-    setCheckOut(null);
-    setDesiredNights(7);
   };
 
   return (
@@ -119,41 +103,8 @@ export function DestinationMiniPanel({
         {/* Form body */}
         <div className="p-5 space-y-5 max-h-[70vh] sm:max-h-[calc(100vh-13rem)] overflow-y-auto">
 
-          {/* Date mode pills */}
+          {/* Dates */}
           <div>
-            <div className="flex gap-2 mb-4">
-              <button
-                type="button"
-                onClick={() => switchMode('exact')}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-medium transition-all ${
-                  dateMode === 'exact'
-                    ? 'bg-navy text-white shadow-sm'
-                    : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
-                }`}
-              >
-                <CalendarDays className="w-3.5 h-3.5" />
-                Exact dates
-              </button>
-              <button
-                type="button"
-                onClick={() => switchMode('flexible')}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-medium transition-all ${
-                  dateMode === 'flexible'
-                    ? 'bg-navy text-white shadow-sm'
-                    : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
-                }`}
-              >
-                <CalendarRange className="w-3.5 h-3.5" />
-                Flexible window
-              </button>
-            </div>
-
-            {dateMode === 'flexible' && (
-              <p className="text-[11px] text-slate-400 mb-3 px-0.5 leading-relaxed">
-                Pick your earliest check-in and latest check-out. We'll match you to any stay within this window.
-              </p>
-            )}
-
             <DateRangePicker
               checkIn={checkIn}
               checkOut={checkOut}
@@ -161,39 +112,11 @@ export function DestinationMiniPanel({
                 setCheckIn(from);
                 setCheckOut(to);
               }}
-              minNights={dateMode === 'flexible' ? 1 : 2}
-              maxNights={dateMode === 'flexible' ? 365 : 14}
-              hintText={dateMode === 'flexible' ? 'Select your earliest check-in and latest check-out — up to ~1 month' : undefined}
-              suggestedStartDay={dateMode === 'exact' ? destination.suggestedStartDay : undefined}
+              suggestedStartDay={destination.suggestedStartDay}
               destinationName={destination.name}
             />
           </div>
 
-          {/* Trip length — only shown in flexible mode after window is set */}
-          {flexibleDates && checkIn && checkOut && (
-            <div className="pt-1">
-              <p className="label-caps text-slate-400 mb-1">How long is your trip?</p>
-              <p className="text-[11px] text-slate-400 mb-3 leading-relaxed">
-                We'll find you a <strong className="text-navy">{desiredNights}-night</strong> stay anywhere within your window. We'll aim for a Sunday check-in when matching.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {NIGHT_OPTIONS.map((n) => (
-                  <button
-                    key={n}
-                    type="button"
-                    onClick={() => setDesiredNights(n)}
-                    className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-all ${
-                      desiredNights === n
-                        ? 'bg-navy text-white shadow-sm'
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                    }`}
-                  >
-                    {n} nights
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* Unit preference */}
           <div>
