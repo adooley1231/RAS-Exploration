@@ -12,7 +12,7 @@ const scenarioLabels: Record<DemoScenario, string> = {
 
 export function Header() {
   const { state, setDemoScenario, setAppMode, reset } = useRAS();
-  const { user, demoScenario, currentView, appMode } = state;
+  const { user, demoScenario, appMode } = state;
 
   return (
     <header className="bg-white sticky top-0 z-50" style={{ borderBottom: '1px solid var(--er-gray-200)' }}>
