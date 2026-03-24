@@ -441,17 +441,27 @@ function DestinationDetailPanel({
           >
             Travel Dates
           </p>
-          <DateRangePicker
-            checkIn={checkIn}
-            checkOut={checkOut}
-            onChange={onDateChange}
-            minNights={2}
-            maxNights={14}
-            suggestedStartDay={destination.suggestedStartDay}
-            destinationName={destination.name}
-            hintText={null}
-            compact
-          />
+          <div
+            style={{
+              background: '#fff',
+              border: `1px solid ${checkIn ? 'var(--er-gray-300)' : 'var(--er-gray-200)'}`,
+              borderRadius: 'var(--er-radius-xl)',
+              padding: '4px 16px 4px 12px',
+              transition: 'border-color 0.15s ease',
+            }}
+          >
+            <DateRangePicker
+              checkIn={checkIn}
+              checkOut={checkOut}
+              onChange={onDateChange}
+              minNights={2}
+              maxNights={14}
+              suggestedStartDay={destination.suggestedStartDay}
+              destinationName={destination.name}
+              hintText={null}
+              compact
+            />
+          </div>
         </div>
 
         {/* Unit preference */}
