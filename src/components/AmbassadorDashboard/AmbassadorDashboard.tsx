@@ -87,7 +87,7 @@ export function AmbassadorDashboard() {
   ];
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-8">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
 
       {/* Ambassador identity bar */}
       <div className="flex items-center gap-3 mb-6">
@@ -117,22 +117,24 @@ export function AmbassadorDashboard() {
           boxShadow: 'var(--er-shadow-sm)',
         }}
       >
+        {/* Stats row: 2-col grid on mobile, flex row on sm+ */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-8 flex-wrap">
+          <div className="grid grid-cols-2 sm:flex sm:items-center sm:gap-8 gap-3">
             <Stat value={members.length} label="Total members" />
-            <div style={{ width: '1px', height: '36px', background: 'var(--er-gray-200)' }} />
             <Stat value={submitted.length} label="Submitted" color="var(--color-teal)" />
-            <div style={{ width: '1px', height: '36px', background: 'var(--er-gray-200)' }} />
             <Stat value={notStarted.length} label="Not started" color="rgb(185,28,28)" />
             {hasResults.length > 0 && (
-              <>
-                <div style={{ width: '1px', height: '36px', background: 'var(--er-gray-200)' }} />
-                <Stat value={hasResults.length} label="Results ready" color="var(--color-gold-dark)" />
-              </>
+              <Stat value={hasResults.length} label="Results ready" color="var(--color-gold-dark)" />
             )}
+            {/* Vertical dividers — desktop only */}
+            <div className="hidden sm:contents">
+              <div style={{ width: '1px', height: '36px', background: 'var(--er-gray-200)', order: 2 }} />
+              <div style={{ width: '1px', height: '36px', background: 'var(--er-gray-200)', order: 4 }} />
+              {hasResults.length > 0 && <div style={{ width: '1px', height: '36px', background: 'var(--er-gray-200)', order: 6 }} />}
+            </div>
           </div>
           <div
-            className="flex-shrink-0 px-4 py-2.5 flex items-center gap-2"
+            className="flex-shrink-0 px-4 py-2.5 flex items-center gap-2 w-full sm:w-auto"
             style={{
               background: daysUntilRun <= 7 ? 'rgba(180,83,9,0.08)' : 'var(--er-gray-50)',
               border: `1px solid ${daysUntilRun <= 7 ? 'rgba(180,83,9,0.2)' : 'var(--er-gray-200)'}`,
@@ -175,45 +177,47 @@ export function AmbassadorDashboard() {
         </div>
       </div>
 
-      {/* Filter tabs */}
-      <div
-        className="flex items-center gap-1 mb-5 p-1"
-        style={{ background: 'var(--er-gray-100)', borderRadius: 'var(--er-radius-lg)', display: 'inline-flex' }}
-      >
-        {filterTabs.map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => setActiveFilter(tab.id)}
-            className="flex items-center gap-2 px-4 py-2 transition-all"
-            style={{
-              borderRadius: 'var(--er-radius-md)',
-              fontFamily: 'var(--er-font-sans)',
-              fontSize: '0.8125rem',
-              fontWeight: activeFilter === tab.id ? 500 : 400,
-              background: activeFilter === tab.id ? 'var(--er-white)' : 'transparent',
-              color: activeFilter === tab.id ? 'var(--er-slate-800)' : 'var(--er-gray-500)',
-              boxShadow: activeFilter === tab.id ? 'var(--er-shadow-xs)' : 'none',
-              cursor: 'pointer',
-              border: 'none',
-            }}
-          >
-            {tab.label}
-            <span
+      {/* Filter tabs — scrollable on mobile */}
+      <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0 mb-5 pb-1">
+        <div
+          className="flex items-center gap-1 p-1"
+          style={{ background: 'var(--er-gray-100)', borderRadius: 'var(--er-radius-lg)', width: 'max-content', minWidth: '100%' }}
+        >
+          {filterTabs.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveFilter(tab.id)}
+              className="flex items-center gap-2 px-3 sm:px-4 py-2 transition-all whitespace-nowrap"
               style={{
+                borderRadius: 'var(--er-radius-md)',
                 fontFamily: 'var(--er-font-sans)',
-                fontSize: '0.6875rem',
-                fontWeight: 500,
-                color: activeFilter === tab.id ? 'var(--er-slate-800)' : 'var(--er-gray-400)',
-                background: activeFilter === tab.id ? 'var(--er-gray-100)' : 'transparent',
-                borderRadius: 'var(--er-radius-full)',
-                padding: activeFilter === tab.id ? '1px 6px' : '0',
+                fontSize: '0.8125rem',
+                fontWeight: activeFilter === tab.id ? 500 : 400,
+                background: activeFilter === tab.id ? 'var(--er-white)' : 'transparent',
+                color: activeFilter === tab.id ? 'var(--er-slate-800)' : 'var(--er-gray-500)',
+                boxShadow: activeFilter === tab.id ? 'var(--er-shadow-xs)' : 'none',
+                cursor: 'pointer',
+                border: 'none',
               }}
             >
-              {tab.count}
-            </span>
-          </button>
-        ))}
+              {tab.label}
+              <span
+                style={{
+                  fontFamily: 'var(--er-font-sans)',
+                  fontSize: '0.6875rem',
+                  fontWeight: 500,
+                  color: activeFilter === tab.id ? 'var(--er-slate-800)' : 'var(--er-gray-400)',
+                  background: activeFilter === tab.id ? 'var(--er-gray-100)' : 'transparent',
+                  borderRadius: 'var(--er-radius-full)',
+                  padding: activeFilter === tab.id ? '1px 6px' : '0',
+                }}
+              >
+                {tab.count}
+              </span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Member table */}
@@ -319,15 +323,17 @@ function MemberRow({
 
   return (
     <div
-      className="flex flex-col md:grid items-center gap-3 md:gap-0 px-5 py-4 cursor-pointer transition-colors hover:bg-gray-50 group"
-      style={{
-        gridTemplateColumns: '1fr 140px 180px 160px 80px 40px',
-        borderBottom: isLast ? 'none' : '1px solid var(--er-gray-100)',
-      }}
+      className="px-4 sm:px-5 py-4 cursor-pointer transition-colors hover:bg-gray-50 group"
+      style={{ borderBottom: isLast ? 'none' : '1px solid var(--er-gray-100)' }}
       onClick={onManage}
     >
-      {/* Member name + type */}
-      <div className="flex items-center gap-3 w-full md:w-auto">
+      {/* ── Desktop grid row ── */}
+      <div
+        className="hidden md:grid items-center"
+        style={{ gridTemplateColumns: '1fr 140px 180px 160px 80px 40px' }}
+      >
+        {/* Member name + type — desktop */}
+        <div className="flex items-center gap-3">
         <div
           className="w-9 h-9 flex items-center justify-center flex-shrink-0"
           style={{
@@ -410,10 +416,10 @@ function MemberRow({
             )}
           </div>
         </div>
-      </div>
+        </div>
 
-      {/* Status */}
-      <div>
+        {/* Status — desktop */}
+        <div>
         <span
           className="inline-flex items-center gap-1.5 px-2.5 py-1"
           style={{
@@ -431,8 +437,8 @@ function MemberRow({
         </span>
       </div>
 
-      {/* Requests */}
-      <div>
+        {/* Requests — desktop */}
+        <div>
         {member.requests.length === 0 ? (
           <p style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.8125rem', color: 'var(--er-gray-400)', fontStyle: 'italic' }}>
             No requests yet
@@ -463,8 +469,8 @@ function MemberRow({
         )}
       </div>
 
-      {/* Points */}
-      <div>
+        {/* Points — desktop */}
+        <div>
         <div className="flex items-center gap-1.5">
           <Coins className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'var(--color-gold)' }} />
           <span style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.8125rem', color: 'var(--er-slate-800)', fontWeight: 500 }}>
@@ -488,8 +494,8 @@ function MemberRow({
         )}
       </div>
 
-      {/* Submitted by */}
-      <div>
+        {/* Submitted by — desktop */}
+        <div>
         {member.requests.length > 0 ? (
           <span
             style={{
@@ -509,9 +515,86 @@ function MemberRow({
         )}
       </div>
 
-      {/* Chevron */}
-      <div className="flex justify-end">
-        <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" style={{ color: 'var(--er-gray-300)' }} />
+        {/* Chevron — desktop */}
+        <div className="flex justify-end">
+          <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" style={{ color: 'var(--er-gray-300)' }} />
+        </div>
+      </div>
+
+      {/* ── Mobile card layout ── */}
+      <div className="md:hidden">
+        {/* Top row: avatar + name + chevron */}
+        <div className="flex items-center gap-3">
+          <div
+            className="w-9 h-9 flex items-center justify-center flex-shrink-0"
+            style={{
+              background: member.user.memberType === 'ultra'
+                ? 'linear-gradient(135deg, var(--color-gold-dark), var(--color-gold))'
+                : 'var(--er-gray-100)',
+              borderRadius: 'var(--er-radius-sm)',
+            }}
+          >
+            {member.user.memberType === 'ultra' ? (
+              <Crown className="w-4 h-4 text-white" />
+            ) : (
+              <User className="w-4 h-4" style={{ color: 'var(--er-gray-400)' }} />
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p style={{ fontFamily: 'var(--er-font-sans)', fontWeight: 500, fontSize: '0.9375rem', color: 'var(--er-slate-800)' }}>
+              {member.user.name}
+            </p>
+            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+              <p style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.75rem', color: 'var(--er-gray-400)' }}>
+                {member.user.memberType === 'ultra' ? 'Ultra Member' : 'Regular Member'}
+              </p>
+              {member.user.isFirstTime && (
+                <span style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.625rem', fontWeight: 500, color: 'var(--color-teal)', background: 'rgba(27,102,117,0.08)', borderRadius: 'var(--er-radius-full)', padding: '1px 6px', letterSpacing: '0.04em', textTransform: 'uppercase' as const }}>
+                  First time
+                </span>
+              )}
+              {pendingAcceptance.length > 0 && (
+                <span style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.625rem', fontWeight: 500, color: 'rgb(180,83,9)', background: 'rgba(180,83,9,0.08)', borderRadius: 'var(--er-radius-full)', padding: '1px 6px', letterSpacing: '0.04em', textTransform: 'uppercase' as const }}>
+                  Awaiting acceptance
+                </span>
+              )}
+            </div>
+          </div>
+          <ChevronRight className="w-4 h-4 flex-shrink-0 transition-transform group-hover:translate-x-0.5" style={{ color: 'var(--er-gray-300)' }} />
+        </div>
+
+        {/* Bottom row: status + requests + points */}
+        <div className="flex items-center gap-2 mt-3 flex-wrap">
+          <span
+            className="inline-flex items-center gap-1.5 px-2.5 py-1"
+            style={{
+              background: status.bg,
+              border: `1px solid ${status.border}`,
+              borderRadius: 'var(--er-radius-full)',
+              fontFamily: 'var(--er-font-sans)',
+              fontSize: '0.75rem',
+              fontWeight: 500,
+              color: status.color,
+            }}
+          >
+            <StatusIcon className="w-3 h-3 flex-shrink-0" />
+            {status.label}
+          </span>
+          {member.requests.length > 0 && (
+            <span style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.75rem', color: 'var(--er-gray-500)', background: 'var(--er-gray-100)', borderRadius: 'var(--er-radius-full)', padding: '2px 8px' }}>
+              {member.requests.length} request{member.requests.length !== 1 ? 's' : ''}
+            </span>
+          )}
+          {member.requests.length > 0 && (
+            <span className="inline-flex items-center gap-1" style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.75rem', color: 'var(--er-gray-500)', background: 'var(--er-gray-100)', borderRadius: 'var(--er-radius-full)', padding: '2px 8px' }}>
+              <Coins className="w-3 h-3" style={{ color: 'var(--color-gold)' }} />
+              {totalAllocated}/{member.pointsBudget} pts
+            </span>
+          )}
+          {member.requests.length === 0 && (
+            <span style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.75rem', color: 'var(--er-gray-400)', fontStyle: 'italic' }}>No requests yet</span>
+          )}
+        </div>
       </div>
     </div>
   );
