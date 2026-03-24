@@ -98,7 +98,7 @@ export function BrowseOrSearch() {
           boxShadow: 'var(--er-shadow-xs)',
         }}
       >
-        <div className="flex items-center gap-3 px-4 py-3.5 flex-1" style={{ borderBottom: '1px solid var(--er-gray-100)' }}>
+        <div className="flex items-center gap-3 px-4 py-3.5 flex-1" style={{ borderBottom: 'none' }}>
           <Search className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--er-gray-400)' }} />
           <input
             type="text"
@@ -115,6 +115,7 @@ export function BrowseOrSearch() {
           )}
         </div>
         <div className="hidden sm:block w-px flex-shrink-0" style={{ background: 'var(--er-gray-100)' }} />
+        <div className="sm:hidden h-px mx-4" style={{ background: 'var(--er-gray-100)' }} />
         <div className="sm:w-72 flex-shrink-0 px-4 py-2.5" style={{ position: 'relative' }}>
           <DateRangePicker
             checkIn={checkIn}
@@ -126,9 +127,18 @@ export function BrowseOrSearch() {
         </div>
       </div>
 
-      {/* Featured strip */}
-      {featuredDestinations.length > 0 && !searchQuery && (
-        <div className="mb-10">
+      {/* Featured strip — fades out on search */}
+      {featuredDestinations.length > 0 && (
+        <div
+          className="mb-10"
+          style={{
+            opacity: searchQuery ? 0 : 1,
+            maxHeight: searchQuery ? 0 : '600px',
+            overflow: 'hidden',
+            transition: 'opacity 0.2s ease, max-height 0.3s ease',
+            pointerEvents: searchQuery ? 'none' : 'auto',
+          }}
+        >
           <p className="label-caps mb-4" style={{ color: 'var(--er-gray-400)', letterSpacing: '0.11em' }}>Featured</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
             {featuredDestinations.slice(0, 3).map((dest) => (
@@ -294,12 +304,7 @@ export function BrowseOrSearch() {
         />
       )}
 
-      <style>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(6px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
+
     </div>
   );
 }
@@ -595,17 +600,17 @@ function WishlistSidebar({
               style={{
                 fontFamily: 'var(--er-font-serif)',
                 fontWeight: 300,
-                fontSize: '1rem',
+                fontSize: '1.25rem',
                 color: 'var(--er-slate-800)',
                 margin: 0,
-                letterSpacing: '-0.01em',
+                letterSpacing: '-0.02em',
               }}
             >
               Your Wishlist
             </h3>
             <p
-              className="mt-0.5 label-caps"
-              style={{ color: 'var(--er-gray-400)', letterSpacing: '0.06em' }}
+              className="mt-1 label-caps"
+              style={{ color: 'var(--er-gray-400)', letterSpacing: '0.08em' }}
             >
               {requests.length} of {MAX_REQUESTS} slots used
             </p>
@@ -620,42 +625,40 @@ function WishlistSidebar({
           )}
         </div>
 
-        {/* Progress bar */}
-        {requests.length > 0 && (
+        {/* Progress bar — always visible */}
+        <div
+          className="flex-shrink-0 mx-5"
+          style={{ height: '2px', background: 'var(--er-gray-100)', borderRadius: '1px', marginTop: '-1px' }}
+        >
           <div
-            className="flex-shrink-0 mx-5 mb-0"
-            style={{ height: '2px', background: 'var(--er-gray-100)', borderRadius: '1px', marginTop: '-1px' }}
-          >
-            <div
-              style={{
-                width: `${slotPct}%`,
-                height: '100%',
-                background: 'var(--color-gold)',
-                opacity: 0.7,
-                borderRadius: '1px',
-                transition: 'width 0.4s ease',
-              }}
-            />
-          </div>
-        )}
+            style={{
+              width: `${slotPct}%`,
+              height: '100%',
+              background: 'var(--color-gold)',
+              opacity: 0.7,
+              borderRadius: '1px',
+              transition: 'width 0.4s ease',
+            }}
+          />
+        </div>
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto">
           {requests.length === 0 ? (
-            <div className="py-16 px-5 text-center">
+            <div className="py-12 px-5 text-center">
               <div
-                className="w-12 h-12 flex items-center justify-center mx-auto mb-4"
-                style={{ background: 'var(--er-gray-50)', borderRadius: 'var(--er-radius-full)' }}
+                className="w-14 h-14 flex items-center justify-center mx-auto mb-5"
+                style={{ background: 'var(--er-gray-50)', borderRadius: 'var(--er-radius-full)', border: '1px solid var(--er-gray-100)' }}
               >
-                <Compass className="w-5 h-5" style={{ color: 'var(--er-gray-300)' }} />
+                <Compass className="w-6 h-6" style={{ color: 'var(--er-gray-300)' }} />
               </div>
               <p
                 className="italic"
                 style={{
                   fontFamily: 'var(--er-font-serif)',
                   fontWeight: 300,
-                  fontSize: '0.9375rem',
-                  color: 'var(--er-gray-400)',
+                  fontSize: '1.0625rem',
+                  color: 'var(--er-slate-700)',
                   lineHeight: 1.5,
                   maxWidth: '14rem',
                   margin: '0 auto',
@@ -665,10 +668,22 @@ function WishlistSidebar({
               </p>
               <p
                 className="mt-2"
-                style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.75rem', color: 'var(--er-gray-400)' }}
+                style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.8125rem', color: 'var(--er-gray-400)', lineHeight: 1.5 }}
               >
-                Select a destination to add it.
+                Click any destination on the left to view details and add it to your wishlist.
               </p>
+              {/* Directional hint arrow */}
+              <div
+                className="flex items-center justify-center gap-1.5 mt-5"
+                style={{ color: 'var(--er-gray-300)' }}
+              >
+                <svg viewBox="0 0 24 24" fill="none" style={{ width: '16px', height: '16px', transform: 'rotate(180deg)' }}>
+                  <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <span style={{ fontFamily: 'var(--er-font-sans)', fontSize: '0.6875rem', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                  Browse destinations
+                </span>
+              </div>
             </div>
           ) : (
             <div className="p-4 space-y-1">
